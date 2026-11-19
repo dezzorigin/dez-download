@@ -45,7 +45,7 @@ def get(url):
     with urllib.request.urlopen(req, timeout=30) as r:
         return r.status, r.headers.get_content_type(), r.read().decode("utf-8", "replace")
 s, _, html = get("https://dez-download.pages.dev/")
-assert s == 200 and "Tempel tautan" in html, s
+assert s == 200 and "Extract Media" in html, s
 assert 'property="og:title"' in html and "twitter:card" in html
 assert "dez-download.pages.dev/og-image.png" in html
 s, ct, _ = get("https://dez-download.pages.dev/og-image.png")

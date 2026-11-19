@@ -36,14 +36,14 @@ Kandidat:
    fitur harus bisa dicek di produk; tanpa angka vanity.
 
 **Pemenang: #1 VERT, dipadu #2 (antrean/manifest).** Yang di-clone
-strukturnya: hero = alatnya sendiri (form tempel tautan di kolom kiri,
-kartu manifest contoh di kolom kanan); hasil = baris-baris manifest
-dengan label peti per format; fitur = baris manifest, bukan grid kartu
-simetris. Yang diubah dan kenapa: VERT terang dan minimal; di sini
-dermaga gelap (bekerja malam, layar alat), dengan aksen pelampung
-vermilion untuk satu-satunya aksi utama dan kuning rambu untuk kualitas
-terbaik — supaya dalam sekali lihat ketahuan ini alat unduh, bukan
-landing SaaS generik.
+strukturnya: hero = alatnya sendiri (judul + form tempel tautan, satu
+kolom terpusat, seperti VERT); hasil = baris-baris manifest dengan label
+peti per format. Yang TIDAK di-clone: seksi fitur/cara-kerja ala landing
+— produk ini satu halaman alat, bukan landing tentang alat. Yang diubah
+dan kenapa: VERT terang dan minimal; di sini dermaga gelap (bekerja
+malam, layar alat), dengan aksen pelampung vermilion untuk satu-satunya
+aksi utama dan kuning rambu untuk kualitas terbaik — supaya dalam sekali
+lihat ketahuan ini alat unduh, bukan landing SaaS generik.
 
 ## Palet (6 warna bernama)
 
@@ -53,7 +53,7 @@ landing SaaS generik.
 | Dermaga | `#122E31` | panel/kartu — permukaan dermaga |
 | Busa | `#E9F1EC` | teks utama — buih (putih kehijauan) |
 | Abu Kabut | `#93A8A4` | teks sekunder, metadata |
-| Pelampung | `#E4572E` | aksen — CTA "Ekstrak Media", stempel kualitas terbaik (vermilion) |
+| Pelampung | `#E4572E` | aksen — CTA "Extract Media", stempel kualitas terbaik (vermilion) |
 | Kuning Rambu | `#F2C230` | sorot — chip kualitas, peringatan ringan, label peti |
 
 Tidak ada gradient (P0). Palet bukan satu hue (teal dalam + putih hijau
@@ -73,23 +73,20 @@ bukan warna ketujuh.
 
 ## Layout (satu kalimat)
 
-Hero dua kolom — kiri: judul + formulir intake (satu-satunya aksi
-utama) + teks persetujuan singkat; kanan: kartu manifest contoh
-(berlabel jujur "contoh") — disusul strip konveyor 54 platform yang
-berjalan, baris-baris manifest fitur, tiga langkah dermaga, dan footer
-satu baris ala label pengiriman.
+Satu kolom terpusat — header pil melayang; hero alat (judul + form +
+teks persetujuan singkat); manifest hasil di bawah (bila ada); drawer
+platform/legal dari samping; footer satu baris asli repo.
 
 ## Detail khas (signature)
 
 **Manifest kargo** — kartu hasil bermodel lembar manifest: tepi atas
 ber-perforasi (garis putus-putus), stempel miring berbingkai ganda
 `BEST WITH AUDIO`, tombol format berupa label peti mono
-(`MP4 · 1080p`), dan strip platform yang bergerak seperti ban
-konveyor (berhenti bila `prefers-reduced-motion`). Radius: kartu 12px,
-chip 4px, input pil penuh. Tidak ada kartu 3-simetris, tidak ada emoji
-(ikon = SVG Lucide stroke 1.5–2px), tidak ada statistik vanity — angka
-yang tampil hanya yang bisa dicek di repo: 54 platform, cache 10 menit,
-2 panggilan paralel (video + audio).
+(`MP4 · 1080p`). Radius: kartu 12px, chip 4px, input pil penuh. Tidak
+ada kartu 3-simetris, tidak ada emoji (ikon = SVG Lucide stroke
+1.5–2px), tidak ada statistik vanity — angka yang tampil hanya yang
+bisa dicek di repo: 54 platform, cache 10 menit, 2 panggilan paralel
+(video + audio).
 
 ## Beda dari repo sebelumnya (#47 monitor-kuliah-dezz)
 
@@ -97,7 +94,7 @@ yang tampil hanya yang bisa dicek di repo: 54 platform, cache 10 menit,
 |---|---|---|
 | Palet | kertas arsip terang `#F2F0E6` | air dermaga gelap `#0C1F22` + vermilion |
 | Tipografi | Special Elite + Libre Franklin | Space Grotesk + IBM Plex Mono |
-| Layout | satu kolom linimasa buku log | hero 2 kolom + strip konveyor + baris manifest |
+| Layout | satu kolom linimasa buku log | satu kolom alat terpusat + manifest hasil |
 | Radius/spacing | radius 0 di semua permukaan | kartu 12px, chip 4px, input pil penuh |
 | Detail khas | jilid ledger + stempel HADIR | manifest kargo + perforasi + stempel BEST WITH AUDIO |
 

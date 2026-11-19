@@ -1,6 +1,6 @@
 # DezDownload
 
-**Tempel tautan, ambil medianya.** Downloader video, audio, dan gambar
+**Paste a link, get the media.** Downloader video, audio, dan gambar
 dari 54 platform — TikTok, Instagram, YouTube, X, Spotify, dan lainnya —
 lewat Cobalt API. Tanpa akun, tanpa iklan, tanpa menyimpan file Anda.
 
@@ -13,7 +13,7 @@ lewat Cobalt API. Tanpa akun, tanpa iklan, tanpa menyimpan file Anda.
 
 ## Cara kerja
 
-1. Tempel tautan media di kolom intake (parameter playlist/pelacak
+1. Tempel tautan media di kolom form (parameter playlist/pelacak
    dibersihkan otomatis).
 2. Pages Worker bertanya ke instance Cobalt — dua panggilan paralel:
    video kualitas tertinggi (`downloadMode: auto`) dan audio

@@ -5,8 +5,7 @@ import {
   Download, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Globe, Github, X, Menu,
   Video, Instagram, Youtube, Twitter, MessageSquare, Music, Headphones, Tv, Ghost, Facebook,
   MessageCircle, Image, Linkedin, Play, Share2, Film, Disc, Smile, FileText, Gitlab, Clipboard,
-  Server, Volume2, VolumeX, ArrowDownToLine, Package, ShieldCheck,
-  Zap, Clock, Anchor,
+  Volume2, VolumeX, ArrowDownToLine, Anchor,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { forceDownload } from "@/lib/utils";
@@ -151,7 +150,7 @@ export default function Home() {
       setToastType("info");
       setToastMessage(
         customEvent.detail?.message ||
-          "Media dibuka langsung. Kalau video terputar, tekan lama atau klik kanan lalu simpan.",
+          "Media opens directly. If a video starts playing, long-press or right-click to save it.",
       );
       setShowToast(true);
     };
@@ -271,7 +270,7 @@ export default function Home() {
       try {
         data = await res.json();
       } catch (jsonErr) {
-        setError("Gagal mengekstrak media. Periksa URL lalu coba lagi.");
+        setError("Failed to extract media. Check the URL and try again.");
         return;
       }
 
@@ -281,22 +280,22 @@ export default function Home() {
           errorMsg === "user_retry_required" ||
           data?.Code === 403 ||
           errorMsg.includes("user_retry_required") ||
-          errorMsg.includes("diterima server")
+          errorMsg.includes("rejected by the server")
         ) {
           setError(
-            "URL tidak valid atau ditolak server. Pastikan link video bersih dari parameter tambahan (seperti playlist).",
+            "Invalid URL or rejected by the server. Make sure the video link is clean of extra parameters (like playlists).",
           );
         } else {
-          setError(errorMsg || "Gagal mengekstrak media. Periksa URL lalu coba lagi.");
+          setError(errorMsg || "Failed to extract media. Check the URL and try again.");
         }
       } else {
         setResult(data.Result);
         setToastType("success");
-        setToastMessage("Media berhasil diekstrak.");
+        setToastMessage("Media extracted successfully.");
         setShowToast(true);
       }
     } catch (err: any) {
-      setError("Gagal mengekstrak media. Periksa URL lalu coba lagi.");
+      setError("Failed to extract media. Check the URL and try again.");
     } finally {
       setLoading(false);
     }
@@ -458,72 +457,51 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--air)] text-[var(--busa)] selection:bg-[var(--pelampung)] selection:text-white">
-      {/* ── Sticky navbar ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 border-b border-[var(--garis)] bg-[var(--air)]/95 backdrop-blur">
-        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
-          <a href="#" className="flex shrink-0 items-center gap-2.5" aria-label="DezDownload — beranda">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--pelampung)]">
+      {/* ── Header pil melayang (struktur asli repo) ─────────────── */}
+      <header className="fixed top-6 left-1/2 z-40 w-[92%] max-w-xl -translate-x-1/2 md:max-w-3xl">
+        <div className="flex items-center justify-between gap-4 rounded-full border border-[var(--garis)] bg-[var(--dermaga)]/95 px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur md:px-6 md:py-3">
+          <a href="#" className="flex shrink-0 items-center gap-2.5" aria-label="DezDownload — home">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pelampung)]">
               <Anchor className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
             </span>
-            <span className="text-base font-bold tracking-tight">DezDownload</span>
-            <span className="hidden font-mono text-[10px] font-medium tracking-wider text-[var(--kabut)] sm:inline">
-              v0.2.0
-            </span>
+            <span className="text-sm font-bold tracking-tight md:text-base">DezDownload</span>
           </a>
 
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
-            <a
-              href="#cara-kerja"
-              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+            <button
+              onClick={() => setIsPlatformsDrawerOpen(true)}
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
             >
-              Cara kerja
-            </a>
-            <a
-              href="#platform"
-              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-            >
-              Platform
-            </a>
-            <a
-              href="#fitur"
-              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-            >
-              Fitur
-            </a>
-            <a
-              href="/docs/"
-              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-            >
-              Dokumen
-            </a>
+              Platforms
+            </button>
             <button
               onClick={() => setIsDrawerOpen(true)}
-              className="cursor-pointer rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
             >
-              Legal
+              Legal &amp; Terms
+            </button>
+            <button
+              onClick={handleInstallClick}
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Install App
             </button>
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              onClick={handleInstallClick}
-              className="hidden min-h-11 cursor-pointer items-center rounded-full border border-[var(--garis-kuat)] px-4 text-xs font-bold transition-colors hover:bg-white/5 active:scale-[0.97] sm:flex"
-            >
-              Install App
-            </button>
             <a
               href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-              aria-label="Repositori GitHub DezDownload"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+              aria-label="DezDownload GitHub repository"
             >
               <Github className="h-4.5 w-4.5" />
             </a>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] md:hidden"
-              aria-label="Buka menu"
+              className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] md:hidden"
+              aria-label="Toggle menu"
               aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -534,42 +512,23 @@ export default function Home() {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.nav
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.15 }}
-              className="overflow-hidden border-t border-[var(--garis)] md:hidden"
-              aria-label="Menu seluler"
+              className="mt-2 overflow-hidden rounded-[12px] border border-[var(--garis)] bg-[var(--dermaga)] shadow-2xl md:hidden"
+              aria-label="Mobile menu"
             >
-              <div className="flex flex-col gap-1 px-4 py-3">
-                <a
-                  href="#cara-kerja"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+              <div className="flex flex-col gap-1 p-3">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsPlatformsDrawerOpen(true);
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
                 >
-                  Cara kerja
-                </a>
-                <a
-                  href="#platform"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
-                >
-                  Platform
-                </a>
-                <a
-                  href="#fitur"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
-                >
-                  Fitur
-                </a>
-                <a
-                  href="/docs/"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
-                >
-                  Dokumen
-                </a>
+                  Platforms
+                </button>
                 <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
@@ -577,7 +536,16 @@ export default function Home() {
                   }}
                   className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
                 >
-                  Legal
+                  Legal &amp; Terms
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleInstallClick();
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
+                >
+                  Install App
                 </button>
               </div>
             </motion.nav>
@@ -586,22 +554,18 @@ export default function Home() {
       </header>
 
       <main className="w-full flex-1">
-        {/* ── Hero dua kolom: alat di kiri, manifest contoh di kanan ── */}
-        <section className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-10 px-4 pt-12 pb-10 md:px-6 md:pt-16 lg:grid-cols-5 lg:gap-12">
-          <div className="lg:col-span-3">
+        {/* ── Hero: alatnya sendiri, satu kolom terpusat ── */}
+        <section className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 pt-28 pb-10 text-center sm:px-6 md:pt-36">
+          <div>
             <p className="mb-5 font-mono text-xs font-semibold tracking-[0.18em] text-[var(--rambu)]">
-              DERMAGA UNDUH MEDIA · 54 PLATFORM
+              54 PLATFORMS · POWERED BY COBALT
             </p>
-            <h1 className="text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Tempel tautan.
-              <br />
-              Ambil medianya.
+            <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
+              DezDownload
             </h1>
-            <p className="mt-5 max-w-[60ch] text-base leading-relaxed text-[var(--kabut)] md:text-lg">
-              DezDownload mengekstrak video, audio, dan gambar dari tautan
-              media sosial lewat Cobalt API — kualitas tertinggi dulu, audio
-              terpisah bila ada. Tanpa akun, tanpa iklan, dan tanpa satu byte
-              pun file Anda disimpan.
+            <p className="mx-auto mt-5 max-w-[60ch] text-base leading-relaxed text-[var(--kabut)] md:text-lg">
+              Extract high-quality video, audio, and images from any social
+              platform instantly. No account, no ads, nothing stored.
             </p>
 
             <form
@@ -612,13 +576,13 @@ export default function Home() {
               <input
                 ref={inputRef}
                 type="url"
-                placeholder="Tempel tautan video di sini…"
+                placeholder="Paste URL here..."
                 className="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--busa)] outline-none placeholder:text-[var(--kabut)] md:text-base"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={loading}
                 required
-                aria-label="Tautan media yang akan diunduh"
+                aria-label="Media link"
               />
               <button
                 type="button"
@@ -631,8 +595,8 @@ export default function Home() {
                   }
                 }}
                 className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] active:scale-95"
-                title="Tempel dari clipboard"
-                aria-label="Tempel dari clipboard"
+                title="Paste from clipboard"
+                aria-label="Paste from clipboard"
               >
                 <Clipboard className="h-4 w-4 md:h-5 md:w-5" />
               </button>
@@ -643,18 +607,18 @@ export default function Home() {
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" /> Memproses
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing
                   </>
                 ) : (
                   <>
-                    <Download className="h-4 w-4" /> Ekstrak Media
+                    <Download className="h-4 w-4" /> Extract Media
                   </>
                 )}
               </button>
             </form>
 
             <p className="mt-4 max-w-[60ch] text-xs leading-relaxed text-[var(--kabut)]">
-              Dengan mengekstrak media, Anda menyetujui{" "}
+              By extracting media, you agree to our{" "}
               <button
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
@@ -662,27 +626,8 @@ export default function Home() {
               >
                 Legal &amp; Terms
               </button>{" "}
-              — unduh hanya media publik yang memang berhak Anda simpan.
+              — download only public media you have the right to save.
             </p>
-
-            <dl className="mt-8 flex flex-wrap gap-x-8 gap-y-3">
-              <div>
-                <dt className="font-mono text-[10px] tracking-wider text-[var(--kabut)]">PLATFORM DIKENALI</dt>
-                <dd className="font-mono text-lg font-semibold">54</dd>
-              </div>
-              <div>
-                <dt className="font-mono text-[10px] tracking-wider text-[var(--kabut)]">PANGGILAN COBALT</dt>
-                <dd className="font-mono text-lg font-semibold">2 paralel</dd>
-              </div>
-              <div>
-                <dt className="font-mono text-[10px] tracking-wider text-[var(--kabut)]">CACHE URL SAMA</dt>
-                <dd className="font-mono text-lg font-semibold">10 menit</dd>
-              </div>
-              <div>
-                <dt className="font-mono text-[10px] tracking-wider text-[var(--kabut)]">FILE DISIMPAN</dt>
-                <dd className="font-mono text-lg font-semibold">0 byte</dd>
-              </div>
-            </dl>
 
             <AnimatePresence>
               {error && (
@@ -698,61 +643,9 @@ export default function Home() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
 
-          {/* ── Kartu manifest contoh ── */}
-          <div className="lg:col-span-2">
-            <div className="dock-panel relative overflow-hidden">
-              <div className="flex items-center justify-between border-b border-[var(--garis)] px-5 py-3.5">
-                <span className="font-mono text-[11px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-                  MANIFEST — CONTOH
-                </span>
-                <span className="rounded-[4px] border border-[var(--rambu)] px-2 py-0.5 font-mono text-[10px] font-bold tracking-wide text-[var(--rambu)]">
-                  CONTOH
-                </span>
-              </div>
-              <div className="px-5 pt-5 pb-4">
-                <div className="flex aspect-[16/10] w-full items-center justify-center rounded-[8px] border border-[var(--garis)] bg-[var(--air)]">
-                  <div className="flex flex-col items-center gap-2 text-[var(--kabut)]">
-                    <Film className="h-8 w-8" strokeWidth={1.5} />
-                    <span className="font-mono text-[11px]">thumbnail video</span>
-                  </div>
-                </div>
-                <h3 className="mt-4 text-base leading-snug font-bold">
-                  Contoh: video TikTok — 1080p (FHD)
-                </h3>
-                <p className="mt-1 font-mono text-xs text-[var(--kabut)]">
-                  oleh @contoh · sumber: Cobalt · 00:42
-                </p>
-              </div>
-              <div className="manifest-perforation space-y-2 px-5 py-4">
-                <p className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-                  PETI VIDEO — MP4
-                </p>
-                <div className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border border-[var(--garis-kuat)] bg-[var(--busa)] px-4 py-2.5 font-mono text-xs font-semibold text-[#0c1f22]">
-                  <span>MP4 · 1080p (FHD)</span>
-                  <span className="rounded-[4px] border border-[#7a5b00] bg-[#fdf3cf] px-2 py-0.5 text-[10px] font-bold text-[#7a5b00]">
-                    BEST WITH AUDIO
-                  </span>
-                </div>
-                <div className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border border-[var(--garis-kuat)] bg-transparent px-4 py-2.5 font-mono text-xs font-semibold text-[var(--busa)]">
-                  <span>MP4 · 720p (HD)</span>
-                  <span className="text-[10px] text-[var(--kabut)]">VIDEO ONLY</span>
-                </div>
-                <div className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border border-[var(--garis-kuat)] bg-transparent px-4 py-2.5 font-mono text-xs font-semibold text-[var(--busa)]">
-                  <span>MP3 · 320kbps</span>
-                  <span className="text-[10px] text-[var(--kabut)]">AUDIO</span>
-                </div>
-              </div>
-              <div className="border-t border-[var(--garis)] px-5 py-3.5">
-                <button
-                  onClick={() => inputRef.current?.focus()}
-                  className="cursor-pointer font-mono text-xs font-semibold text-[var(--rambu)] underline-offset-2 hover:underline"
-                >
-                  Ini hanya contoh — coba sendiri di kolom kiri →
-                </button>
-              </div>
-            </div>
+            {/* Space divider (asli repo) */}
+            <div className="mt-10 w-full" />
           </div>
         </section>
 
@@ -767,22 +660,25 @@ export default function Home() {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2 }}
               className="mx-auto w-full max-w-6xl px-4 pb-4 md:px-6"
-              aria-label="Hasil ekstraksi"
+              aria-label="Extraction results"
             >
               <div className="dock-panel relative overflow-hidden">
                 <div className="flex flex-col gap-3 border-b border-[var(--garis)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
                   <div>
-                    <h2 className="text-xl font-bold md:text-2xl">Ekstraksi selesai</h2>
+                    <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-[var(--kabut)]">
+                      MANIFEST
+                    </p>
+                    <h2 className="mt-1 text-xl font-bold md:text-2xl">Extraction Complete</h2>
                     <p className="mt-0.5 text-xs text-[var(--kabut)]">
-                      Pilih peti format di bawah — tautan langsung, tanpa antre.
+                      Pick a format crate below — direct links, no queue.
                     </p>
                   </div>
                   <span className="flex w-fit items-center gap-2 rounded-full border border-[var(--garis-kuat)] bg-white/5 px-4 py-1.5 text-xs font-semibold">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-[var(--rambu)]" /> Siap diunduh
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[var(--rambu)]" /> Ready
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 p-5 md:grid-cols-5 md:p-6">
+                <div className="manifest-perforation grid grid-cols-1 gap-6 p-5 md:grid-cols-5 md:p-6">
                   <div className="md:col-span-2">
                     {result.thumbnail ? (
                       <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[8px] border border-[var(--garis)] bg-[var(--air)]">
@@ -812,7 +708,7 @@ export default function Home() {
                     <div className="mt-2 mb-5 flex flex-wrap items-center gap-2">
                       {result.author && (
                         <span className="text-xs font-medium text-[var(--kabut)]">
-                          oleh {result.author}
+                          by {result.author}
                         </span>
                       )}
                       {result.source && (
@@ -832,7 +728,7 @@ export default function Home() {
                       {(sortedMp4Videos.length > 0 || sortedWebmVideos.length > 0) && (
                         <div className="flex flex-col gap-3">
                           <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-                            PETI VIDEO
+                            VIDEO CRATE
                           </span>
                           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div className="flex flex-col gap-2">
@@ -850,7 +746,7 @@ export default function Home() {
                                 )
                               ) : (
                                 <p className="rounded-[4px] border border-dashed border-[var(--garis-kuat)] px-4 py-3 text-center text-xs text-[var(--kabut)]">
-                                  Tidak ada format MP4
+                                  No MP4 formats
                                 </p>
                               )}
                             </div>
@@ -869,7 +765,7 @@ export default function Home() {
                                 )
                               ) : (
                                 <p className="rounded-[4px] border border-dashed border-[var(--garis-kuat)] px-4 py-3 text-center text-xs text-[var(--kabut)]">
-                                  Tidak ada format WEBM
+                                  No WEBM formats
                                 </p>
                               )}
                             </div>
@@ -880,7 +776,7 @@ export default function Home() {
                       {sortedAudios.length > 0 && (
                         <div className="flex flex-col gap-2">
                           <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-                            PETI AUDIO
+                            AUDIO CRATE
                           </span>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {sortedAudios.map((item: any, idx: number) =>
@@ -893,7 +789,7 @@ export default function Home() {
                       {fallbackLinks.length > 0 && (
                         <div className="flex flex-col gap-2">
                           <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-                            TAUTAN LAIN
+                            OTHER LINKS
                           </span>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {fallbackLinks.map((link: any, idx: number) => (
@@ -918,14 +814,14 @@ export default function Home() {
 
                 <details className="group mx-5 mb-5 overflow-hidden rounded-[8px] border border-[var(--garis)] bg-black/20 md:mx-6 md:mb-6">
                   <summary className="cursor-pointer p-4 text-xs font-semibold text-[var(--kabut)] transition-colors select-none hover:bg-white/[0.03] hover:text-[var(--busa)]">
-                    Lihat payload teknis
+                    View technical payload
                   </summary>
                   <div className="border-t border-[var(--garis)] p-4">
                     <p className="mb-3 text-xs leading-relaxed text-[var(--kabut)]">
-                      Skema payload, routing stream, dan arsitektur ekstraksi
-                      didokumentasikan di{" "}
+                      Payload schema, stream routing, and the extraction
+                      architecture are documented in the{" "}
                       <a href="/docs/" className="font-semibold text-[var(--busa)] underline underline-offset-2">
-                        Dokumen
+                        Docs
                       </a>
                       .
                     </p>
@@ -939,184 +835,15 @@ export default function Home() {
           )}
         </AnimatePresence>
 
-        {/* ── Strip konveyor platform ── */}
-        <section id="platform" className="border-y border-[var(--garis)] bg-[var(--dermaga)]/40 py-6" aria-label="Platform yang dikenali">
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 pb-4 md:px-6">
-            <h2 className="font-mono text-[11px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
-              PLATFORM YANG DIKENALI — KLIK UNTUK MENGISI TAUTAN
-            </h2>
-            <button
-              onClick={() => setIsPlatformsDrawerOpen(true)}
-              className="shrink-0 cursor-pointer font-mono text-xs font-semibold text-[var(--rambu)] underline-offset-2 hover:underline"
-            >
-              Lihat semua 54 →
-            </button>
-          </div>
-          <div className="relative overflow-hidden" aria-hidden="true">
-            <div className="animate-conveyor gap-2 pr-2">
-              {[...platforms, ...platforms].map((plat, idx) => {
-                const IconComponent = plat.icon;
-                return (
-                  <span
-                    key={`${plat.name}-${idx}`}
-                    className="flex shrink-0 items-center gap-2 rounded-full border border-[var(--garis)] bg-[var(--dermaga)] px-3.5 py-2 font-mono text-xs font-medium text-[var(--kabut)]"
-                  >
-                    <IconComponent className="h-3.5 w-3.5" />
-                    {plat.name}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-          <p className="mx-auto w-full max-w-6xl px-4 pt-4 text-xs leading-relaxed text-[var(--kabut)] md:px-6">
-            Daftar ini adalah platform yang dikenali mesin ekstraksi Cobalt —
-            bukan janji bahwa setiap tautan dari tiap platform pasti berhasil.
-            Kalau satu platform menolak, worker menjawab jujur kenapa.
-          </p>
-        </section>
-
-        {/* ── Fitur sebagai baris manifest ── */}
-        <section id="fitur" className="mx-auto w-full max-w-6xl px-4 py-14 md:px-6">
-          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Yang dikerjakan dermaga ini</h2>
-          <p className="mt-2 max-w-[60ch] text-sm leading-relaxed text-[var(--kabut)] md:text-base">
-            Empat kemampuan, semuanya bisa dicek di kode dan di hasil
-            ekstraksi — bukan klaim pemasaran.
-          </p>
-
-          <div className="mt-8 flex flex-col">
-            <article className="flex flex-col gap-3 border-t border-[var(--garis)] py-6 sm:flex-row sm:items-start sm:gap-6">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] bg-[var(--dermaga)]">
-                <Zap className="h-5 w-5 text-[var(--rambu)]" strokeWidth={1.75} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-bold">Video kualitas tertinggi, dulu</h3>
-                <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-[var(--kabut)]">
-                  Worker meminta Cobalt dengan <code className="font-mono text-[13px] text-[var(--busa)]">videoQuality: max</code>{" "}
-                  lalu mengurutkan hasil 8K → 144p. Peti dengan audio terbaik
-                  dicap <span className="font-semibold text-[var(--busa)]">BEST WITH AUDIO</span> supaya
-                  tidak perlu menebak.
-                </p>
-              </div>
-              <span className="shrink-0 rounded-[4px] border border-[var(--garis)] bg-white/5 px-2.5 py-1 font-mono text-[11px] font-semibold text-[var(--kabut)]">
-                MP4 · WEBM
-              </span>
-            </article>
-
-            <article className="flex flex-col gap-3 border-t border-[var(--garis)] py-6 sm:flex-row sm:items-start sm:gap-6">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] bg-[var(--dermaga)]">
-                <Headphones className="h-5 w-5 text-[var(--rambu)]" strokeWidth={1.75} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-bold">Audio dipisah, paralel</h3>
-                <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-[var(--kabut)]">
-                  Bersamaan dengan video, worker meminta mode audio ke Cobalt.
-                  Hasilnya peti audio sendiri (MP3/M4A, sampai 320kbps) —
-                  cocok untuk lagu, podcast, dan ceramah tanpa gambar.
-                </p>
-              </div>
-              <span className="shrink-0 rounded-[4px] border border-[var(--garis)] bg-white/5 px-2.5 py-1 font-mono text-[11px] font-semibold text-[var(--kabut)]">
-                MP3 · M4A · 320KBPS
-              </span>
-            </article>
-
-            <article className="flex flex-col gap-3 border-t border-[var(--garis)] py-6 sm:flex-row sm:items-start sm:gap-6">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] bg-[var(--dermaga)]">
-                <Clock className="h-5 w-5 text-[var(--rambu)]" strokeWidth={1.75} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-bold">Tautan yang sama tidak ditanya dua kali</h3>
-                <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-[var(--kabut)]">
-                  Hasil ekstraksi di-cache 10 menit dan permintaan bersamaan
-                  untuk URL yang sama digabung jadi satu panggilan ke Cobalt —
-                  supaya tautan viral tidak membanjiri instance.
-                </p>
-              </div>
-              <span className="shrink-0 rounded-[4px] border border-[var(--garis)] bg-white/5 px-2.5 py-1 font-mono text-[11px] font-semibold text-[var(--kabut)]">
-                CACHE 10 MENIT
-              </span>
-            </article>
-
-            <article className="flex flex-col gap-3 border-t border-b border-[var(--garis)] py-6 sm:flex-row sm:items-start sm:gap-6">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] bg-[var(--dermaga)]">
-                <ShieldCheck className="h-5 w-5 text-[var(--rambu)]" strokeWidth={1.75} />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-bold">Tidak menyimpan apa pun</h3>
-                <p className="mt-1 max-w-[65ch] text-sm leading-relaxed text-[var(--kabut)]">
-                  Worker hanya merelay: tautan masuk, tautan media keluar.
-                  Tidak ada media, tidak ada riwayat unduhan, tidak ada akun
-                  yang disimpan di server.
-                </p>
-              </div>
-              <span className="shrink-0 rounded-[4px] border border-[var(--garis)] bg-white/5 px-2.5 py-1 font-mono text-[11px] font-semibold text-[var(--kabut)]">
-                0 BYTE DISIMPAN
-              </span>
-            </article>
-          </div>
-        </section>
-
-        {/* ── Cara kerja: tiga langkah dermaga ── */}
-        <section id="cara-kerja" className="mx-auto w-full max-w-6xl px-4 pb-14 md:px-6">
-          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Cara kerja</h2>
-          <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
-            <article className="dock-panel-flat p-5">
-              <p className="font-mono text-xs font-semibold text-[var(--rambu)]">LANGKAH 1</p>
-              <h3 className="mt-3 flex items-center gap-2 text-base font-bold">
-                <Clipboard className="h-4 w-4 text-[var(--kabut)]" /> Tempel tautan
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--kabut)]">
-                Salin tautan video dari aplikasi apa pun, tempel di kolom
-                intake. Parameter playlist dan pelacak dibersihkan otomatis
-                sebelum dikirim.
-              </p>
-            </article>
-            <article className="dock-panel-flat p-5">
-              <p className="font-mono text-xs font-semibold text-[var(--rambu)]">LANGKAH 2</p>
-              <h3 className="mt-3 flex items-center gap-2 text-base font-bold">
-                <Server className="h-4 w-4 text-[var(--kabut)]" /> Worker bertanya ke Cobalt
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--kabut)]">
-                Pages Worker menanyakan video dan audio secara paralel ke
-                instance Cobalt, lalu menyusun jawabannya jadi satu manifest
-                berlabel kualitas.
-              </p>
-            </article>
-            <article className="dock-panel-flat p-5">
-              <p className="font-mono text-xs font-semibold text-[var(--rambu)]">LANGKAH 3</p>
-              <h3 className="mt-3 flex items-center gap-2 text-base font-bold">
-                <Package className="h-4 w-4 text-[var(--kabut)]" /> Pilih peti, unduh
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-[var(--kabut)]">
-                Klik label peti format yang diinginkan. File terbuka langsung
-                dari sumbernya — simpan dengan klik kanan atau tekan lama bila
-                video terputar.
-              </p>
-            </article>
-          </div>
-        </section>
       </main>
 
-      {/* ── Footer label pengiriman ── */}
-      <footer className="w-full border-t border-[var(--garis)] bg-[#0a1a1d] px-4 py-6 md:px-6">
-        <div className="mx-auto flex w-full max-w-6xl flex-col gap-4 text-xs text-[var(--kabut)] sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            DezDownload © {new Date().getFullYear()} · dezzorigin · Dibangun di
-            atas{" "}
-            <a
-              href="https://cobalt.tools"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="font-medium text-[var(--busa)] underline underline-offset-2"
-            >
-              Cobalt API
-            </a>
-          </p>
+      {/* ── Footer (asli repo) ── */}
+      <footer className="mt-auto w-full border-t border-[var(--garis)] bg-[#0a1a1d] px-4 py-6 md:px-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 text-xs text-[var(--kabut)] sm:flex-row">
+          <p>DezDownload © {new Date().getFullYear()} • Designed by DezReacher</p>
           <div className="flex items-center gap-5">
-            <a
-              href="/docs/"
-              className="font-medium transition-colors hover:text-[var(--busa)]"
-            >
-              Dokumen
+            <a href="/docs/" className="font-medium transition-colors hover:text-[var(--busa)]">
+              Docs
             </a>
             <button
               onClick={() => setIsDrawerOpen(true)}
@@ -1124,21 +851,8 @@ export default function Home() {
             >
               Legal &amp; Terms
             </button>
-            <a
-              href={REPO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 font-medium transition-colors hover:text-[var(--busa)]"
-            >
-              <Github className="h-3.5 w-3.5" /> GitHub
-            </a>
           </div>
         </div>
-        <p className="mx-auto mt-4 w-full max-w-6xl text-[11px] leading-relaxed text-[var(--kabut)]/70">
-          Hanya untuk media publik yang berhak Anda unduh. Hormati hak cipta
-          pembuatnya — alat ini tidak menyimpan, tidak me-host, dan tidak
-          mengubah media apa pun.
-        </p>
       </footer>
 
       {/* ── Drawer Legal & Terms ── */}
@@ -1159,14 +873,14 @@ export default function Home() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l border-[var(--garis)] bg-[#0e2427] shadow-2xl"
               role="dialog"
-              aria-label="Legal dan Terms"
+              aria-label="Legal and Terms"
             >
               <div className="sticky top-0 z-50 flex shrink-0 items-center justify-between border-b border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
                 <h3 className="text-lg font-bold">Legal &amp; Terms</h3>
                 <button
                   onClick={() => setIsDrawerOpen(false)}
                   className="cursor-pointer rounded-[8px] p-2 text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-                  aria-label="Tutup panel legal"
+                  aria-label="Close legal panel"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1174,44 +888,42 @@ export default function Home() {
 
               <div className="flex-1 space-y-6 overflow-y-auto p-6 text-xs leading-relaxed text-[var(--kabut)] md:p-8">
                 <div>
-                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Tentang DezDownload</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">About DezDownload</h4>
                   <p>
-                    DezDownload adalah utilitas web yang dibangun di atas
-                    Next.js dan Cobalt API. Dibuat oleh dezzorigin untuk
-                    mengekstrak media publik dari berbagai platform dengan
-                    latensi rendah.
+                    DezDownload is a web utility built on Next.js and the
+                    Cobalt API. It was created by dezzorigin to extract public
+                    media from many platforms, with low latency.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Ketentuan Layanan</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Terms of Service</h4>
                   <p>
-                    DezDownload adalah utilitas edukasi untuk mengekstrak
-                    media yang tersedia secara publik. Dengan memakai layanan
-                    ini, Anda setuju mengakses konten hanya untuk penggunaan
-                    pribadi dan non-komersial. Pengguna bertanggung jawab penuh
-                    secara hukum atas media yang diakses dan diunduh.
+                    DezDownload is an educational utility for extracting
+                    publicly available media. By using this service, you agree
+                    to access content only for personal, non-commercial use.
+                    Users assume full legal responsibility for the media they
+                    access and download.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Privasi</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Privacy</h4>
                   <p>
-                    DezDownload berfungsi sebagai perantara. Kami tidak
-                    menyimpan, me-host, mengumpulkan, atau meng-cache file
-                    media hasil ekstraksi maupun data pribadi pengguna di
-                    server kami.
+                    DezDownload acts only as a relay. We do not store, host,
+                    collect, or cache extracted media files or users&apos;
+                    personal data on our servers.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">DMCA &amp; Hak Cipta</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">DMCA &amp; Copyright</h4>
                   <p>
-                    Kami melarang keras pemakaian alat ini untuk pelanggaran
-                    hak cipta. DezDownload tidak me-host atau menyimpan materi
-                    berhak cipta di servernya. Pemilik hak cipta yang ingin
-                    membatasi ekstraksi dari suatu platform silakan menghubungi
-                    platform asal tersebut.
+                    We strictly prohibit using this tool for copyright
+                    infringement. DezDownload does not host or store
+                    copyrighted material on its servers. Copyright owners who
+                    wish to restrict extraction from a particular source
+                    platform should contact the originating platform directly.
                   </p>
                 </div>
               </div>
@@ -1221,7 +933,7 @@ export default function Home() {
                   onClick={() => setIsDrawerOpen(false)}
                   className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                 >
-                  Tutup Panel
+                  Close Panel
                 </button>
               </div>
             </motion.div>
@@ -1247,19 +959,19 @@ export default function Home() {
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="fixed inset-y-0 left-0 z-50 flex h-full w-full max-w-md flex-col border-r border-[var(--garis)] bg-[#0e2427] shadow-2xl"
               role="dialog"
-              aria-label="Daftar platform"
+              aria-label="Supported platforms"
             >
               <div className="sticky top-0 z-50 flex shrink-0 items-center justify-between border-b border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
                 <div>
-                  <h3 className="text-lg font-bold">Mesin Ekstraksi Universal</h3>
+                  <h3 className="text-lg font-bold">Universal Extraction Engine</h3>
                   <p className="mt-1 font-mono text-[10px] font-semibold tracking-wider text-[var(--kabut)] uppercase">
-                    Status: Operasional · 54 platform
+                    Status: Operational · 54 platforms
                   </p>
                 </div>
                 <button
                   onClick={() => setIsPlatformsDrawerOpen(false)}
                   className="cursor-pointer rounded-[8px] p-2 text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
-                  aria-label="Tutup daftar platform"
+                  aria-label="Close platforms list"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -1268,8 +980,11 @@ export default function Home() {
               <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
                 <div className="shrink-0 rounded-[12px] border border-[var(--garis)] bg-white/[0.02] p-4">
                   <p className="text-xs leading-relaxed text-[var(--kabut)]">
-                    Kalau ada URL-nya, kami bisa mengekstraknya. Klik sebuah
-                    platform untuk mengisi kolom tautan dengan alamat awalnya.
+                    If it has a URL, we can probably extract it. Click a
+                    platform to fill the link box with its starting address.
+                    Being listed does not guarantee every link from that
+                    platform will succeed — the worker answers honestly when
+                    one refuses.
                   </p>
                 </div>
 
@@ -1299,7 +1014,7 @@ export default function Home() {
                   onClick={() => setIsPlatformsDrawerOpen(false)}
                   className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                 >
-                  Tutup
+                  Close
                 </button>
               </div>
             </motion.div>
@@ -1324,7 +1039,7 @@ export default function Home() {
               <div className="flex-1">
                 <h4 className="text-sm font-bold">Install DezDownload</h4>
                 <p className="mt-1 text-xs text-[var(--kabut)]">
-                  Tambahkan ke layar utama untuk akses instan.
+                  Add it to your home screen for instant access.
                 </p>
                 <div className="mt-4 flex items-center gap-3">
                   <button
@@ -1337,7 +1052,7 @@ export default function Home() {
                     onClick={() => setShowInstallPopup(false)}
                     className="cursor-pointer rounded-full border border-[var(--garis-kuat)] px-4 py-2 text-xs font-semibold transition-colors hover:bg-white/5"
                   >
-                    Nanti
+                    Later
                   </button>
                 </div>
               </div>
@@ -1363,31 +1078,31 @@ export default function Home() {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="dock-panel fixed top-1/2 left-1/2 z-50 w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 p-6 text-center shadow-2xl"
               role="dialog"
-              aria-label="Cara install"
+              aria-label="How to install"
             >
               <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--garis-kuat)] bg-white/5">
                 <ArrowDownToLine className="h-5 w-5" />
               </span>
-              <h3 className="text-lg font-bold tracking-wide">Cara Install</h3>
+              <h3 className="text-lg font-bold tracking-wide">How to Install</h3>
               <p className="mt-2 mb-6 text-xs leading-relaxed text-[var(--kabut)]">
-                Untuk pengalaman terbaik, tambahkan DezDownload ke layar utama:
+                For the best experience, add DezDownload to your home screen:
                 <br />
                 <br />
                 <span className="font-semibold text-[var(--busa)]">Safari (iOS):</span>{" "}
-                Ketuk tombol{" "}
-                <span className="font-bold text-[var(--busa)] underline">Share</span>, gulir ke
-                bawah, lalu pilih{" "}
+                Tap the{" "}
+                <span className="font-bold text-[var(--busa)] underline">Share</span> button,
+                scroll down, then choose{" "}
                 <span className="font-semibold text-[var(--busa)]">“Add to Home Screen”</span>.
                 <br />
                 <br />
                 <span className="font-semibold text-[var(--busa)]">Chrome / Firefox:</span>{" "}
-                Klik tombol install di address bar atau menu.
+                Click the install button in the address bar or menu.
               </p>
               <button
                 onClick={() => setShowInstallInstructions(false)}
                 className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
               >
-                Mengerti
+                Got it
               </button>
             </motion.div>
           </>

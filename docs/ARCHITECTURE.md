@@ -32,9 +32,9 @@ Next.js 15 App Router, `output: 'export'`, `trailingSlash: true`.
 | File | Peran |
 |---|---|
 | `app/layout.tsx` | Metadata + OG/Twitter (URL absolut ke `dez-download.pages.dev`), font Space Grotesk + IBM Plex Mono |
-| `app/page.tsx` | Halaman utama: navbar sticky, hero 2 kolom (form + manifest contoh), strip konveyor 54 platform, baris manifest fitur, 3 langkah, footer, drawer Legal + Platform, modal install, toast |
+| `app/page.tsx` | Halaman utama (produk asli repo, struktur dipulihkan 19 Nov — audit-fix): header pil melayang, hero satu kolom (judul + form), manifest hasil, footer asli, drawer Legal + Platform, modal install, toast |
 | `app/docs/page.tsx` | Halaman dokumentasi (konten jujur — tanpa paywall, tanpa klaim palsu) |
-| `app/globals.css` | Token dermaga (CSS vars) + utilitas `.dock-panel`, `.manifest-perforation`, `.animate-conveyor` |
+| `app/globals.css` | Token dermaga (CSS vars) + utilitas `.dock-panel`, `.manifest-perforation` |
 | `lib/utils.ts` | `cn()` + `forceDownload()` (buka tautan media di tab baru) |
 | `hooks/` | Dihapus di v0.2.0 (`use-mobile.ts` tak terpakai + melanggar `react-hooks/set-state-in-effect`) |
 

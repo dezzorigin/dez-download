@@ -6,7 +6,7 @@ const SUCCESS_FIXTURE = {
   Input: "https://www.tiktok.com/@contoh/video/123",
   Endpoint: "https://api.cobalt.tools/",
   Result: {
-    title: "Contoh video",
+    title: "Example video",
     thumbnail: null,
     author: "@contoh",
     source: "Cobalt",
@@ -44,20 +44,17 @@ const SUCCESS_FIXTURE = {
   Error: null,
 };
 
-test("landing: judul + hero dua kolom + manifest contoh", async ({ page }) => {
+test("tool page: title + hero + form + footer (produk asli repo)", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle("DezDownload — Tempel tautan, ambil medianya");
-  await expect(page.getByRole("heading", { name: "Tempel tautan." })).toBeVisible();
-  await expect(page.getByLabel("Tautan media yang akan diunduh")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Ekstrak Media" })).toBeVisible();
-  // kartu manifest contoh (berlabel jujur)
-  await expect(page.getByText("MANIFEST — CONTOH")).toBeVisible();
-  await expect(page.getByText("MP4 · 1080p (FHD)").first()).toBeVisible();
-  // strip platform + fitur + cara kerja + footer
-  await expect(page.getByText("PLATFORM YANG DIKENALI")).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Yang dikerjakan dermaga ini" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Cara kerja" })).toBeVisible();
-  await expect(page.getByText("Dibangun di atas").first()).toBeVisible();
+  await expect(page).toHaveTitle("DezDownload | Free Universal Media Downloader");
+  await expect(page.getByRole("heading", { name: "DezDownload" })).toBeVisible();
+  await expect(page.getByText("54 PLATFORMS · POWERED BY COBALT")).toBeVisible();
+  await expect(page.getByLabel("Media link")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Extract Media" })).toBeVisible();
+  // header pil: Platforms, Legal & Terms, Install App, GitHub
+  await expect(page.getByRole("button", { name: "Platforms" }).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: "Legal & Terms" }).first()).toBeVisible();
+  await expect(page.getByText("Designed by DezReacher")).toBeVisible();
   // tag OG ada di HTML hasil build
   await expect(page.locator('meta[property="og:title"]')).toHaveCount(1);
   await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
@@ -73,17 +70,18 @@ test("ekstraksi (mock API): manifest hasil tampil dengan label peti", async ({ p
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(SUCCESS_FIXTURE) });
   });
   await page.goto("/");
-  await page.getByLabel("Tautan media yang akan diunduh").fill("https://www.tiktok.com/@contoh/video/123");
-  await page.getByRole("button", { name: "Ekstrak Media" }).click();
-  const results = page.locator('section[aria-label="Hasil ekstraksi"]');
-  await expect(results.getByRole("heading", { name: "Ekstraksi selesai" })).toBeVisible();
-  await expect(results.getByText("Contoh video")).toBeVisible();
+  await page.getByLabel("Media link").fill("https://www.tiktok.com/@contoh/video/123");
+  await page.getByRole("button", { name: "Extract Media" }).click();
+  const results = page.locator('section[aria-label="Extraction results"]');
+  await expect(results.getByRole("heading", { name: "Extraction Complete" })).toBeVisible();
+  await expect(results.getByText("MANIFEST")).toBeVisible();
+  await expect(results.getByText("Example video")).toBeVisible();
   await expect(results.getByText("BEST WITH AUDIO")).toBeVisible();
   await expect(results.getByRole("button", { name: /MP4 · 1080p \(FHD\)/ })).toBeVisible();
   await expect(results.getByText("VIDEO ONLY")).toBeVisible();
   await expect(results.getByRole("button", { name: /MP3 · 320kbps/ })).toBeVisible();
-  await expect(results.getByText("PETI VIDEO")).toBeVisible();
-  await expect(results.getByText("PETI AUDIO")).toBeVisible();
+  await expect(results.getByText("VIDEO CRATE")).toBeVisible();
+  await expect(results.getByText("AUDIO CRATE")).toBeVisible();
 });
 
 test("ekstraksi gagal (mock API): pesan error jujur tampil", async ({ page }) => {
@@ -94,23 +92,23 @@ test("ekstraksi gagal (mock API): pesan error jujur tampil", async ({ page }) =>
       body: JSON.stringify({
         Status: false,
         Code: 400,
-        Error: "Konten tidak ditemukan atau link tidak valid. Pastikan URL yang dimasukkan benar.",
+        Error: "Content not found or link invalid. Make sure the URL you entered is correct.",
       }),
     });
   });
   await page.goto("/");
-  await page.getByLabel("Tautan media yang akan diunduh").fill("https://www.tiktok.com/@contoh/video/123");
-  await page.getByRole("button", { name: "Ekstrak Media" }).click();
-  await expect(page.getByRole("alert")).toContainText("tidak ditemukan atau link tidak valid");
-  await expect(page.getByRole("heading", { name: "Ekstraksi selesai" })).toHaveCount(0);
+  await page.getByLabel("Media link").fill("https://www.tiktok.com/@contoh/video/123");
+  await page.getByRole("button", { name: "Extract Media" }).click();
+  await expect(page.getByRole("alert")).toContainText("Content not found or link invalid");
+  await expect(page.getByRole("heading", { name: "Extraction Complete" })).toHaveCount(0);
 });
 
 test("drawer platform: klik TikTok mengisi kolom tautan", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Lihat semua 54" }).click();
-  await expect(page.getByRole("dialog", { name: "Daftar platform" })).toBeVisible();
+  await page.getByRole("button", { name: "Platforms" }).first().click();
+  await expect(page.getByRole("dialog", { name: "Supported platforms" })).toBeVisible();
   await page.getByRole("button", { name: "TikTok" }).click();
-  await expect(page.getByLabel("Tautan media yang akan diunduh")).toHaveValue(/tiktok\.com/);
+  await expect(page.getByLabel("Media link")).toHaveValue(/tiktok\.com/);
 });
 
 test("API worker: tanpa url harus 400 (tanpa memanggil Cobalt)", async ({ page }) => {
@@ -121,12 +119,12 @@ test("API worker: tanpa url harus 400 (tanpa memanggil Cobalt)", async ({ page }
   expect(px.status()).toBe(400);
 });
 
-test("landing: mobile 390px tanpa scroll horizontal", async ({ page }) => {
+test("tool page: mobile 390px tanpa scroll horizontal", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBe(0);
-  await expect(page.getByRole("button", { name: "Ekstrak Media" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Extract Media" })).toBeVisible();
 });

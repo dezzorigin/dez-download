@@ -84,46 +84,46 @@ export function getError(data, status) {
       cleanCode.includes("jwt.missing")
     ) {
       return (
-        "Instance Cobalt ini memerlukan otentikasi (JWT/API Key). " +
-        "Tambahkan COBALT_API_KEY atau arahkan COBALT_API_URL ke instance tanpa auth."
+        "This Cobalt instance requires authentication (JWT/API key). " +
+        "Set COBALT_API_KEY or point COBALT_API_URL at an instance without auth."
       );
     }
     if (cleanCode.includes("auth")) {
-      return "Akses ditolak. Layanan memerlukan otentikasi atau kunci API yang valid.";
+      return "Access denied. The service requires authentication or a valid API key.";
     }
     if (cleanCode.includes("empty") || cleanCode.includes("invalid") || cleanCode.includes("url")) {
-      return "Konten tidak ditemukan atau link tidak valid. Pastikan URL yang dimasukkan benar.";
+      return "Content not found or link invalid. Make sure the URL you entered is correct.";
     }
     if (cleanCode.includes("rate") || status === 429) {
-      return "Terlalu banyak permintaan (limit terlampaui). Mohon tunggu beberapa saat sebelum mencoba lagi.";
+      return "Too many requests (rate limit exceeded). Please wait a moment before trying again.";
     }
     if (cleanCode.includes("youtube")) {
-      return "Gagal mengekstrak video YouTube. Server mendeteksi pembatasan akses.";
+      return "Failed to extract the YouTube video. The server detected restricted access.";
     }
     if (cleanCode.includes("content.too_long") || cleanCode.includes("link.short")) {
-      return "Link media tidak didukung atau terlalu panjang. Coba gunakan link langsung ke video.";
+      return "Media link not supported or too long. Try a direct link to the video.";
     }
     if (cleanCode.includes("service")) {
-      return "Platform ini belum didukung atau sedang mengalami gangguan. Coba platform lain.";
+      return "This platform is not supported yet or is having trouble. Try another platform.";
     }
     if (cleanCode.includes("fetch") || cleanCode.includes("fail") || cleanCode.includes("critical")) {
-      return "Server gagal mengunduh media dari link tersebut. Silakan coba lagi nanti.";
+      return "The server failed to download media from that link. Please try again later.";
     }
   }
 
   if (status === 401) {
     return (
-      "Instance Cobalt ini memerlukan otentikasi. " +
-      "Tambahkan COBALT_API_KEY atau arahkan COBALT_API_URL ke instance tanpa auth."
+      "This Cobalt instance requires authentication. " +
+      "Set COBALT_API_KEY or point COBALT_API_URL at an instance without auth."
     );
   }
   if (status === 403) {
-    return "URL tidak valid atau ditolak server. Pastikan link video bersih dari parameter tambahan (seperti playlist).";
+    return "Invalid URL or rejected by the server. Make sure the video link is clean of extra parameters (like playlists).";
   }
   if (status === 429) {
-    return "Terlalu banyak permintaan. Mohon tunggu sebentar, lalu coba lagi.";
+    return "Too many requests. Please wait a moment, then try again.";
   }
-  return "Gagal mengekstrak media. Silakan periksa kembali URL Anda dan coba lagi.";
+  return "Failed to extract media. Please check your URL and try again.";
 }
 
 export function getExtension(filename) {
@@ -244,7 +244,7 @@ async function callCobalt(endpoint, headers, body) {
 
 export async function downr(url, env) {
   if (!url || !/^https?:\/\//i.test(url)) {
-    return { Status: false, Code: 400, Input: url || null, Endpoint: null, Result: null, Error: "URL tidak valid." };
+    return { Status: false, Code: 400, Input: url || null, Endpoint: null, Result: null, Error: "Invalid URL." };
   }
   const sanitizedUrl = sanitizeUrl(url);
   const { endpoint, apiKey } = cobaltConfig(env);
@@ -350,7 +350,7 @@ async function handleProxy(request) {
   const url = params.get("url");
   const filename = params.get("filename") || "download";
   if (!url) return json({ Status: false, Error: "URL is required" }, 400);
-  if (!/^https?:\/\//i.test(url)) return json({ Status: false, Error: "URL tidak valid." }, 400);
+  if (!/^https?:\/\//i.test(url)) return json({ Status: false, Error: "Invalid URL." }, 400);
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(COBALT_TIMEOUT_MS) });
     if (!res.ok) throw new Error(`Failed to fetch media: ${res.statusText}`);

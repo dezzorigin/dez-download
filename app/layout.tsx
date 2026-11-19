@@ -10,9 +10,9 @@ const mono = IBM_Plex_Mono({
 });
 
 const SITE_URL = "https://dez-download.pages.dev";
-const TITLE = "DezDownload — Tempel tautan, ambil medianya";
+const TITLE = "DezDownload | Free Universal Media Downloader";
 const DESCRIPTION =
-  "Downloader video, audio, dan gambar dari 54 platform — TikTok, Instagram, YouTube, X, Spotify, dan lainnya — lewat Cobalt API. Tanpa akun, tanpa iklan, tanpa menyimpan file Anda.";
+  "Paste a media link and get its video or audio. 54 supported platforms — TikTok, Instagram, YouTube, X, Spotify, and more — powered by Cobalt. No account, no ads, nothing stored.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     description: DESCRIPTION,
     type: "website",
     url: SITE_URL,
-    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: "DezDownload — dermaga unduh media" }],
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630, alt: "DezDownload — media download dock" }],
   },
   twitter: {
     card: "summary_large_image",
@@ -49,7 +49,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="id" className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${display.variable} ${mono.variable} bg-[var(--air)] text-[var(--busa)] font-display min-h-screen antialiased overflow-x-hidden w-full`}
         suppressHydrationWarning

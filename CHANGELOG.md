@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Mode perawatan dihapus**: `MAINTENANCE_MODE` yang mematikan fitur inti sejak Jul 2026 dibuang — alat kini bisa dipakai; bila upstream gagal, error-nya yang bicara
 - **Static export**: `next.config.ts` `output: 'standalone'` → `output: 'export'` + `trailingSlash: true` untuk Cloudflare Pages direct upload
 - **Route handler Next.js dihapus** (`app/api/*`): logika pindah ke worker (port `lib/downr.ts` ke `fetch`, tanpa axios)
-- **Landing dibangun ulang total**: sticky navbar, hero 2 kolom (form + manifest contoh), strip konveyor 54 platform, baris manifest fitur, 3 langkah dermaga, footer label pengiriman — palet Air Dermaga + Pelampung, Space Grotesk + IBM Plex Mono (lihat `docs/DESIGN.md`)
+- **UI produk dipulihkan ke struktur asli repo (audit-fix 19 Nov, sebelum merge)**: header pil melayang, hero satu kolom (judul + form), manifest hasil, footer asli — seksi landing SaaS dari draf awal (hero 2 kolom + kartu manifest contoh, strip konveyor 54 platform, baris manifest fitur, 3 langkah dermaga, footer label pengiriman) dihapus; UI produk kembali berbahasa Inggris (bahasa asli repo: string form, hasil, drawer, dan pesan error worker) — dokumentasi (README/docs) tetap Indonesia
 - **Halaman `/docs` ditulis ulang**: paywall palsu + klaim "60+ platform" / "token rotation" dihapus, diganti konten jujur
 - Metadata OG/Twitter menunjuk `https://dez-download.pages.dev` (dulu tanpa URL absolut)
 - `package.json`: nama `ai-studio-applet` → `dez-download`, versi 0.2.0, skrip `build`/`typecheck`/`test`/`e2e`/`serve` ditambah (dependensi tidak diubah — lockfile tetap konsisten untuk `npm ci`)

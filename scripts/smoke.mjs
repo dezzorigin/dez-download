@@ -43,10 +43,10 @@ check("index.html berisi og:image absolut", html.includes("https://dez-download.
 check("index.html berisi twitter:card", html.includes('name="twitter:card"'));
 
 const all = readAll(OUT);
-check("hero dua kolom ada di bundle", all.includes("Tempel tautan"));
-check("manifest contoh ada di bundle", all.includes("MANIFEST"));
-check("fitur video kualitas ada di bundle", all.includes("Video kualitas tertinggi"));
-check("cara kerja ada di bundle", all.includes("Worker bertanya ke Cobalt"));
+check("hero (judul + form) ada di bundle", all.includes("Extract Media"));
+check("manifest hasil ada di bundle", all.includes("MANIFEST"));
+check("chip 54 platform ada di bundle", all.includes("54 PLATFORMS"));
+check("judul drawer platform ada di bundle", all.includes("Universal Extraction Engine"));
 check("tanpa sisa maintenance mode di bundle", !all.includes("MAINTENANCE_MODE"));
 check("worker berisi rute /api/download", fs.readFileSync(path.join(OUT, "_worker.js"), "utf8").includes("/api/download"));
 check("worker berisi rute /api/proxy", fs.readFileSync(path.join(OUT, "_worker.js"), "utf8").includes("/api/proxy"));

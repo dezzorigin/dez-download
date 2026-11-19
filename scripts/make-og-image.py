@@ -59,7 +59,7 @@ d.text((180, 232), "DezDownload", font=f_title, fill=BUSA)
 
 # subtitle
 f_sub = ImageFont.truetype(SANS, 38)
-d.text((72, 372), "Tempel tautan, ambil medianya.", font=f_sub, fill=BUSA)
+d.text((72, 372), "Paste a link, get the media.", font=f_sub, fill=BUSA)
 
 # crate-label chips row (mono)
 f_chip = ImageFont.truetype(MONO_B, 26)
@@ -74,7 +74,7 @@ for label in chips:
 
 # footer line
 f_foot = ImageFont.truetype(MONO, 24)
-d.text((72, 556), "DEZ-DOWNLOAD.PAGES.DEV  —  TANPA AKUN, TANPA IKLAN", font=f_foot, fill=KABUT)
+d.text((72, 556), "DEZ-DOWNLOAD.PAGES.DEV  —  NO ACCOUNT, NO ADS", font=f_foot, fill=KABUT)
 
 img.save(OUT, "PNG")
 size = os.path.getsize(OUT)

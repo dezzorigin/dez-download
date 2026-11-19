@@ -37,16 +37,16 @@ test("getError explains auth requirement without leaking anything", () => {
     { status: "error", error: { code: "error.api.auth.jwt.missing" } },
     401,
   );
-  assert.match(msg, /otentikasi/);
-  assert.match(msg, /COBALT_API_KEY/); // nama variabel env boleh disebut
+  assert.match(msg, /authentication/);
+  assert.match(msg, /COBALT_API_KEY/); // env var name may be named
   assert.doesNotMatch(msg, /[A-Za-z0-9_\-]{32,}/); // tapi tidak boleh ada nilai kunci
 });
 
 test("getError maps rate limit + invalid URL + fallback", () => {
-  assert.match(getError({ status: "error", error: { code: "error.api.rate_limit" } }, 429), /Terlalu banyak/);
-  assert.match(getError({ status: "error", error: { code: "error.api.content.empty" } }, 400), /tidak ditemukan/);
-  assert.equal(getError(null, 403), "URL tidak valid atau ditolak server. Pastikan link video bersih dari parameter tambahan (seperti playlist).");
-  assert.match(getError(null, 500), /Gagal mengekstrak/);
+  assert.match(getError({ status: "error", error: { code: "error.api.rate_limit" } }, 429), /Too many requests/);
+  assert.match(getError({ status: "error", error: { code: "error.api.content.empty" } }, 400), /not found/);
+  assert.equal(getError(null, 403), "Invalid URL or rejected by the server. Make sure the video link is clean of extra parameters (like playlists).");
+  assert.match(getError(null, 500), /Failed to extract/);
 });
 
 test("filename helpers: extension, title, quality", () => {

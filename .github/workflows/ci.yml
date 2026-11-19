@@ -12,9 +12,10 @@ name: CI
 #                    deterministik pada advisory dev-only).
 #   static-checks  — gate P0 anti-slop + tag OG/Twitter + data asli repo
 #                    (scripts/check-static.py; og-image diregenerasi dulu).
-#   playwright-e2e — landing + ekstraksi mock + drawer + API 400 + mobile.
+#   playwright-e2e — tool page + ekstraksi mock + drawer + API 400 + mobile.
 #                    HANYA di CI; Chromium lokal tidak bisa start di VM dev.
-#                    Playwright diinstal on-demand via npx (tidak ada di lock).
+#                    Playwright diinstal ke prefix terisolasi /tmp/pw
+#                    (bukan di repo) + dijalankan via NODE_PATH.
 #   smoke          — marker di out/ + sajikan out/ + worker lalu curl:
 #                    landing 200 + marker, /api/download & /api/proxy
 #                    tanpa url -> 400, og-image 200 image/*, 404.
@@ -118,20 +119,28 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Playwright BUKAN dependensi repo (tidak ada di package-lock.json):
-      # diinstal di sini sebagai devDependency CI-only — perubahan
-      # package.json/lock hanya hidup di workspace runner, tidak di-commit.
-      # (npx saja TIDAK cukup: binary dari cache npx tidak bisa me-resolve
-      # import "@playwright/test" di playwright.config.ts — terbukti lokal:
-      # "Error: Cannot find module '@playwright/test'".)
-      - name: Install Playwright (CI-only devDependency)
-        run: npm install -D @playwright/test@1.49.0
+      # Playwright BUKAN dependensi repo (tidak ada di package-lock.json).
+      # Dua bentuk `npm install <pkg>` DI DALAM repo gagal di runner
+      # (run 44511208537 step --no-save, run 44514544194 step -D — penyebab
+      # pasti tak terbaca karena log 401; keduanya memutasi package.json/
+      # lock repo). Solusi: instal ke prefix terisolasi /tmp/pw (package.json
+      # + lock miliknya sendiri, repo tak disentuh), lalu jalankan binary-nya
+      # dengan NODE_PATH supaya import "@playwright/test" di config/spec
+      # ter-resolve — npx saja TIDAK cukup (terbukti lokal: "Error: Cannot
+      # find module '@playwright/test'"; NODE_PATH terbukti bisa).
+      - name: Install Playwright (prefix terisolasi /tmp/pw)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pw
+          cd /tmp/pw
+          npm init -y
+          npm install @playwright/test@1.49.0
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+        run: /tmp/pw/node_modules/.bin/playwright install --with-deps chromium
 
-      - name: E2E landing + ekstraksi mock (desktop + Pixel 7)
-        run: npm run e2e
+      - name: E2E tool page + ekstraksi mock (desktop + Pixel 7)
+        run: NODE_PATH=/tmp/pw/node_modules /tmp/pw/node_modules/.bin/playwright test
 
   smoke:
     needs: build
@@ -163,7 +172,7 @@ jobs:
           done
           code=$(curl -s -o /tmp/landing.html -w "%{http_code}" http://127.0.0.1:8500/)
           echo "landing HTTP $code"; test "$code" = "200"
-          grep -qi "Tempel tautan" /tmp/landing.html
+          grep -qi "Extract Media" /tmp/landing.html
           grep -qi "og:title" /tmp/landing.html
           grep -qi "dez-download.pages.dev/og-image.png" /tmp/landing.html
           # /api/download tanpa url -> 400 (tanpa memanggil Cobalt)
@@ -201,7 +210,7 @@ jobs:
           code=$(curl -s -o /tmp/landing.html -w "%{http_code}" "https://dez-download.pages.dev/")
           echo "landing HTTP $code"
           test "$code" = "200"
-          grep -qi "Tempel tautan" /tmp/landing.html
+          grep -qi "Extract Media" /tmp/landing.html
           grep -qi "og:title" /tmp/landing.html
           grep -qi "twitter:card" /tmp/landing.html
 

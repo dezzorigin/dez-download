@@ -39,18 +39,17 @@ Proyek: `desktop` (Desktop Chrome) + `mobile` (Pixel 7 — JANGAN iPhone,
 WebKit tidak ter-install di CI). `webServer` menjalankan
 `npm run build && PORT=8500 node scripts/serve-worker.mjs`.
 
-1. **Landing** — judul, hero dua kolom, form, manifest contoh, strip
-   platform, fitur, cara kerja, footer; tag OG/Twitter ada; og-image 200
-   `image/*`.
+1. **Tool page** — judul, hero satu kolom, form, header pil, footer;
+   tag OG/Twitter ada; og-image 200 `image/*`.
 2. **Ekstraksi (mock API)** — route `/api/download*` di-mock dengan
    fixture sukses; manifest hasil tampil (BEST WITH AUDIO, VIDEO ONLY,
-   PETI VIDEO, PETI AUDIO).
+   VIDEO CRATE, AUDIO CRATE).
 3. **Ekstraksi gagal (mock API)** — fixture `Status: false`; pesan error
    tampil di `role="alert"`; tidak ada manifest.
 4. **Drawer platform** — klik TikTok mengisi kolom tautan.
 5. **API worker 400** — `/api/download` dan `/api/proxy` tanpa `url`
    menjawab 400 (tanpa memanggil Cobalt).
-6. **Mobile 390px** — tanpa scroll horizontal; tombol Ekstrak terlihat.
+6. **Mobile 390px** — tanpa scroll horizontal; tombol Extract Media terlihat.
 
 Mock dipakai supaya e2e deterministik: panggilan Cobalt asli bergantung
 pada layanan upstream (auth, rate limit) dan tidak boleh membuat CI
@@ -81,8 +80,8 @@ range `^1.7.9` di `package.json` mengizinkannya.
 ## Smoke — `scripts/smoke.mjs` + curl (job `smoke`)
 
 - Marker di `out/`: `index.html`, `docs/index.html`, `_worker.js`,
-  `404.html`, `og-image.png` ≥ 10 KB; "Tempel tautan", "MANIFEST",
-  "Video kualitas tertinggi", "Worker bertanya ke Cobalt" ada di bundle;
+  `404.html`, `og-image.png` ≥ 10 KB; "Extract Media", "MANIFEST",
+  "54 PLATFORMS", "Universal Extraction Engine" ada di bundle;
   tanpa `MAINTENANCE_MODE`; worker berisi kedua rute API.
 - Serve + curl: landing 200 + marker + `og:title` + og-image absolut;
   `/api/download` dan `/api/proxy` tanpa url → 400; og-image

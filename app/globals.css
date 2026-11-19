@@ -79,40 +79,8 @@
     border-radius: 12px;
   }
 
-  .dock-panel-flat {
-    background: rgba(233, 241, 236, 0.03);
-    border: 1px solid var(--garis);
-    border-radius: 12px;
-  }
-
   /* Tepi perforasi manifest: garis putus-putus pemisah peti. */
   .manifest-perforation {
     border-top: 1px dashed var(--garis-kuat);
-  }
-
-  /* Strip konveyor platform. */
-  @keyframes conveyor {
-    0% {
-      transform: translateX(0);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  .animate-conveyor {
-    display: flex;
-    width: max-content;
-    animation: conveyor 60s linear infinite;
-  }
-
-  .animate-conveyor:hover {
-    animation-play-state: paused;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .animate-conveyor {
-      animation: none;
-    }
   }
 }
