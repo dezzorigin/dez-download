@@ -8,8 +8,25 @@ lewat Cobalt API. Tanpa akun, tanpa iklan, tanpa menyimpan file Anda.
 - **Repo:** https://github.com/dezzorigin/dez-download
 - **Status:** proper v0.2.0 — CI hijau, deploy Cloudflare Pages
 
-> Screenshot isi web + video demo: follow-up (browser live). Belum
-> tersedia di PR ini — lihat laporan PR.
+## Screenshot
+
+![DezDownload — hero dan form tempel tautan](docs/screenshots/01-hero.png)
+
+![DezDownload — manifest hasil ekstraksi, peti video dan audio](docs/screenshots/02-manifest.png)
+
+![DezDownload — drawer 54 platform yang didukung](docs/screenshots/03-platforms.png)
+
+## Video demo
+
+[![Video demo DezDownload — tempel tautan contoh, manifest tampil](docs/screenshots/02-manifest.png)](docs/demo.mp4)
+
+[▶ Tonton demo (MP4, 16 detik)](docs/demo.mp4)
+
+> Kejujuran rekaman: video memakai respons **mock** Cobalt (data contoh
+> yang sama seperti tes e2e) — ekstraksi live nyata butuh `COBALT_API_KEY`
+> dan instance Cobalt yang mengizinkan. Yang ditunjukkan video adalah alur
+> UI asli: tempel tautan → manifest format → drawer platform. Screenshot
+> di atas direkam Playwright dari aplikasi yang sama di CI.
 
 ## Cara kerja
 
