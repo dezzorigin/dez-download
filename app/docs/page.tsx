@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { 
-  Download, Github, Lock, Server, FileCode, ArrowLeft, X, Sparkles, CheckCircle2,
-  FileText, Menu
+import {
+  Github, Lock, Server, FileCode, ArrowLeft, X, CheckCircle2,
+  FileText, Menu, Anchor, ArrowDownToLine, BookOpen,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+
+const REPO_URL = "https://github.com/dezzorigin/dez-download";
 
 export default function DocsPage() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -19,16 +21,16 @@ export default function DocsPage() {
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
+    if (deferredPrompt && typeof deferredPrompt.prompt === "function") {
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
+        if (outcome === "accepted") {
           setDeferredPrompt(null);
         }
       } catch (err) {
@@ -41,403 +43,401 @@ export default function DocsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#050505] selection:bg-white selection:text-black overflow-x-hidden">
-      
-      {/* Back to Home Button */}
-      <a 
-        href="/" 
-        className="fixed top-6 left-4 md:left-8 z-50 flex items-center justify-center md:gap-2 chess-glass-pill h-10 w-10 md:h-auto md:w-auto md:px-4 md:py-2.5 hover:bg-white/10 active:scale-95 transition-all text-xs font-semibold text-white shadow-lg"
-      >
-        <ArrowLeft className="w-4 h-4 shrink-0" />
-        <span className="hidden md:inline">Back to Home</span>
-      </a>
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--air)] text-[var(--busa)]">
+      {/* ── Sticky navbar (sama seperti beranda) ── */}
+      <header className="sticky top-0 z-40 border-b border-[var(--garis)] bg-[var(--air)]/95 backdrop-blur">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
+          <a href="/" className="flex shrink-0 items-center gap-2.5" aria-label="DezDownload — beranda">
+            <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[var(--pelampung)]">
+              <Anchor className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
+            </span>
+            <span className="text-base font-bold tracking-tight">DezDownload</span>
+            <span className="hidden font-mono text-[10px] font-medium tracking-wider text-[var(--kabut)] sm:inline">
+              DOCS
+            </span>
+          </a>
 
-      {/* Floating Pill Navigation */}
-      <header className="fixed top-6 right-4 left-16 sm:left-20 md:left-1/2 md:-translate-x-1/2 md:right-auto z-40 md:w-auto max-w-xl md:max-w-3xl chess-glass-pill py-2.5 px-4 md:py-3 md:px-6 flex items-center justify-between gap-4 md:gap-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white flex items-center justify-center">
-            <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-black" strokeWidth={3} />
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Navigasi utama">
+            <a
+              href="/"
+              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Beranda
+            </a>
+            <a
+              href="/?platforms=true"
+              className="rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Platform
+            </a>
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="cursor-pointer rounded-[4px] px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Legal
+            </button>
+            <a
+              href="/docs/"
+              className="rounded-[4px] bg-white/10 px-3 py-2 text-sm font-semibold"
+              aria-current="page"
+            >
+              Dokumen
+            </a>
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              onClick={handleInstallClick}
+              className="hidden min-h-11 cursor-pointer items-center rounded-full border border-[var(--garis-kuat)] px-4 text-xs font-bold transition-colors hover:bg-white/5 active:scale-[0.97] sm:flex"
+            >
+              Install App
+            </button>
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+              aria-label="Repositori GitHub DezDownload"
+            >
+              <Github className="h-4.5 w-4.5" />
+            </a>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-[8px] border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] md:hidden"
+              aria-label="Buka menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-          <span className="text-white font-extrabold text-xs md:text-sm tracking-wide">DezDownload</span>
-        </div>
-        
-        {/* Desktop Links (md:flex) */}
-        <nav className="hidden md:flex items-center gap-2.5 md:gap-4 lg:gap-5">
-          <a href="/" className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors py-1 px-1.5 hover:bg-white/5 rounded-lg">Home</a>
-          <a 
-            href="/?platforms=true"
-            className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors py-1 px-1.5 hover:bg-white/5 rounded-lg"
-          >
-            Platforms
-          </a>
-          <button 
-            onClick={() => setIsDrawerOpen(true)}
-            className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors cursor-pointer bg-transparent border-0 outline-none py-1 px-1.5 hover:bg-white/5 rounded-lg"
-          >
-            Legal & Terms
-          </button>
-          <a href="/docs" className="text-white text-xs md:text-sm font-semibold px-2.5 py-1 md:px-3.5 md:py-1.5 rounded-full bg-white/10">Docs</a>
-        </nav>
-
-        {/* Right side icons & buttons always visible on Mobile & Desktop */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button 
-            onClick={handleInstallClick}
-            className="text-[#050505] bg-white hover:bg-zinc-200 text-[10px] md:text-xs font-bold px-2.5 py-1.5 md:px-3.5 md:py-1.5 rounded-full transition-all cursor-pointer active:scale-95 shrink-0 shadow-sm"
-          >
-            Install App
-          </button>
-          <a 
-            href="https://github.com/nblauliadka/DezDownload" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-zinc-400 hover:text-white transition-colors shrink-0 p-1 hover:bg-white/5 rounded-lg"
-            aria-label="GitHub Repository"
-          >
-            <Github className="w-4 h-4" />
-          </a>
-          
-          {/* Hamburger button (Mobile only) */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex md:hidden text-zinc-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg cursor-pointer"
-            aria-label="Toggle Menu"
-          >
-            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
         </div>
 
-        {/* Mobile Dropdown Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-[110%] left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl rounded-2xl p-4 border border-white/10 flex flex-col gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.8)] z-50 md:hidden animate-fade-in"
+            <motion.nav
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.15 }}
+              className="overflow-hidden border-t border-[var(--garis)] md:hidden"
+              aria-label="Menu seluler"
             >
-              <a 
-                href="/" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all"
-              >
-                Home
-              </a>
-              <a 
-                href="/?platforms=true"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all"
-              >
-                Platforms
-              </a>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsDrawerOpen(true);
-                }}
-                className="text-left text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all bg-transparent border-0 outline-none w-full cursor-pointer"
-              >
-                Legal & Terms
-              </button>
-              <a 
-                href="/docs" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-white text-sm font-semibold py-2 px-3 bg-white/10 rounded-lg"
-              >
-                Docs
-              </a>
-            </motion.div>
+              <div className="flex flex-col gap-1 px-4 py-3">
+                <a
+                  href="/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                >
+                  Beranda
+                </a>
+                <a
+                  href="/?platforms=true"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-[4px] px-3 py-2.5 text-sm font-medium hover:bg-white/5"
+                >
+                  Platform
+                </a>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsDrawerOpen(true);
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
+                >
+                  Legal
+                </button>
+                <a
+                  href="/docs/"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="rounded-[4px] bg-white/10 px-3 py-2.5 text-sm font-semibold"
+                >
+                  Dokumen
+                </a>
+              </div>
+            </motion.nav>
           )}
         </AnimatePresence>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full overflow-x-hidden px-4 md:px-6 max-w-4xl mx-auto py-28 md:py-36 flex flex-col gap-10">
-        
-        {/* Page Header (Hero Section) */}
-        <section className="flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 chess-glass-pill text-zinc-300 px-4 py-2 mb-6 font-medium text-xs tracking-wider uppercase">
-            <FileCode className="w-4 h-4 text-white" />
-            <span>Developer Docs</span>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4 bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent">
-            DezDownload Documentation
+      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-10 px-4 py-12 md:px-6 md:py-16">
+        <section className="flex flex-col items-start">
+          <p className="mb-4 flex items-center gap-2 font-mono text-xs font-semibold tracking-[0.18em] text-[var(--rambu)]">
+            <FileCode className="h-4 w-4" /> DEVELOPER DOCS
+          </p>
+          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">
+            Dokumentasi DezDownload
           </h1>
-          <p className="text-xs md:text-sm text-zinc-500 max-w-2xl leading-relaxed">
-            The Ultimate Universal Media Extraction & Downloader Engine. Learn about the features, technical stacks, setup instructions, and core architecture of DezDownload.
+          <p className="mt-4 max-w-[65ch] text-base leading-relaxed text-[var(--kabut)]">
+            Mesin ekstraksi media universal: tempel tautan, worker bertanya ke
+            Cobalt API, hasilnya dikembalikan sebagai manifest format. Dokumen
+            lengkap (PRD, arsitektur, testing, deploy) ada di folder{" "}
+            <code className="font-mono text-sm text-[var(--busa)]">docs/</code>{" "}
+            repositori.
           </p>
         </section>
 
-        {/* Introduction Section */}
-        <section className="chess-glass rounded-3xl p-6 md:p-8 border border-white/5">
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-white animate-pulse" />
-            <h2 className="text-base md:text-lg font-bold text-white tracking-wide">⚡ Introduction</h2>
-          </div>
-          <p className="text-zinc-400 text-xs md:text-sm leading-relaxed">
-            DezDownload is an elite, high-performance universal media extraction platform. Created by developer <span className="text-white font-semibold">DezReacher</span>, it features a latency-optimized client routing layer and a stream proxy system designed to bypass typical cross-origin browser policies and retrieve high-quality video, audio, and images from any social platform instantly.
+        <section className="dock-panel p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <BookOpen className="h-5 w-5 text-[var(--rambu)]" /> Pengantar
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--kabut)]">
+            DezDownload adalah utilitas web oleh dezzorigin untuk mengekstrak
+            media publik dari 54 platform. Tidak ada akun, tidak ada iklan,
+            tidak ada media yang disimpan: worker hanya merelay permintaan ke
+            instance Cobalt dan membentuk jawabannya jadi daftar format yang
+            bisa diunduh. Kalau instance Cobalt menolak (misalnya butuh
+            autentikasi), worker menjawab dengan pesan error yang jujur —
+            bukan halaman kosong.
           </p>
         </section>
 
-        {/* Features Section */}
-        <section className="chess-glass rounded-3xl p-6 md:p-8 border border-white/5 space-y-6">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-white" />
-            <h2 className="text-base md:text-lg font-bold text-white tracking-wide">🌟 Key Features</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-colors">
-              <h3 className="text-xs md:text-sm font-bold text-white mb-2">Universal Media Extraction</h3>
-              <p className="text-zinc-400 text-[11px] md:text-xs leading-relaxed">
-                Instant links generation for 60+ social networks, sharing sites, and media CDNs including YouTube, TikTok, Instagram, Twitter/X, and more.
+        <section className="dock-panel p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <CheckCircle2 className="h-5 w-5 text-[var(--rambu)]" /> Fitur utama
+          </h2>
+          <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <li className="rounded-[8px] border border-[var(--garis)] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-bold">Ekstraksi video + audio</h3>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--kabut)]">
+                Dua panggilan paralel ke Cobalt: video kualitas tertinggi
+                (mode auto) dan audio saja. Hasil diurutkan 8K → 144p untuk
+                video, bitrate tertinggi dulu untuk audio.
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-colors">
-              <h3 className="text-xs md:text-sm font-bold text-white mb-2">CORS Bypass Streaming Proxy</h3>
-              <p className="text-zinc-400 text-[11px] md:text-xs leading-relaxed">
-                Seamless programmatic downloading using a server-side ReadableStream proxy, ensuring files download locally without opening tabs.
+            </li>
+            <li className="rounded-[8px] border border-[var(--garis)] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-bold">Proxy unduhan</h3>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--kabut)]">
+                <code className="font-mono text-[11px] text-[var(--busa)]">GET /api/proxy?url=…&amp;filename=…</code>{" "}
+                mengambil media dan mengembalikannya sebagai attachment —
+                berguna saat tautan sumber memblokir unduhan lintas origin.
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-colors">
-              <h3 className="text-xs md:text-sm font-bold text-white mb-2">Intelligent Media Sorting</h3>
-              <p className="text-zinc-400 text-[11px] md:text-xs leading-relaxed">
-                Automated ordering of extracted assets, listing videos first (descending by parsed resolution) followed by audio tracks (by bitrate).
+            </li>
+            <li className="rounded-[8px] border border-[var(--garis)] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-bold">Cache + gabung permintaan</h3>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--kabut)]">
+                URL yang sama di-cache 10 menit; permintaan bersamaan untuk
+                URL yang sama digabung jadi satu panggilan ke Cobalt.
               </p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/[0.01] border border-white/5 hover:border-white/10 transition-colors">
-              <h3 className="text-xs md:text-sm font-bold text-white mb-2">Progressive Web App (PWA)</h3>
-              <p className="text-zinc-400 text-[11px] md:text-xs leading-relaxed">
-                Built-in service worker registration and native installation prompt dialogs for offline-ready standalone application experiences.
+            </li>
+            <li className="rounded-[8px] border border-[var(--garis)] bg-white/[0.02] p-4">
+              <h3 className="text-sm font-bold">PWA</h3>
+              <p className="mt-1 text-xs leading-relaxed text-[var(--kabut)]">
+                Service worker + manifest, bisa di-install ke layar utama.
+                Pendaftaran service worker tidak mengubah perilaku fetch.
               </p>
-            </div>
-          </div>
+            </li>
+          </ul>
         </section>
 
-        {/* Tech Stack Section */}
-        <section className="chess-glass rounded-3xl p-6 md:p-8 border border-white/5">
-          <div className="flex items-center gap-2 mb-4">
-            <Server className="w-5 h-5 text-white" />
-            <h2 className="text-base md:text-lg font-bold text-white tracking-wide">🛠️ Technical Stack</h2>
-          </div>
-          <div className="overflow-hidden border border-white/10 rounded-2xl bg-black/20">
-            <table className="w-full text-left border-collapse text-xs">
+        <section className="dock-panel p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Server className="h-5 w-5 text-[var(--rambu)]" /> Stack teknis
+          </h2>
+          <div className="mt-4 overflow-x-auto rounded-[8px] border border-[var(--garis)]">
+            <table className="w-full border-collapse text-left text-xs">
               <thead>
-                <tr className="border-b border-white/10 bg-white/[0.02]">
-                  <th className="p-3 font-semibold text-white">Layer</th>
-                  <th className="p-3 font-semibold text-white">Technologies</th>
+                <tr className="border-b border-[var(--garis)] bg-white/[0.02]">
+                  <th className="p-3 font-semibold">Lapisan</th>
+                  <th className="p-3 font-semibold">Teknologi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-zinc-400">
+              <tbody className="divide-y divide-[var(--garis)] text-[var(--kabut)]">
                 <tr>
-                  <td className="p-3 font-medium text-white">Core Framework</td>
-                  <td className="p-3">Next.js 15 (App Router, Dynamic SSR) & React 19</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">Framework</td>
+                  <td className="p-3">Next.js 15 (App Router, static export) &amp; React 19</td>
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium text-white">Language</td>
-                  <td className="p-3 font-mono">TypeScript (Strict Mode)</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">Bahasa</td>
+                  <td className="p-3 font-mono">TypeScript (strict)</td>
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium text-white">Styling</td>
-                  <td className="p-3">Tailwind CSS v4 & Vanilla CSS custom design tokens</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">Styling</td>
+                  <td className="p-3">Tailwind CSS v4 + token desain dermaga (lihat docs/DESIGN.md)</td>
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium text-white">Animations & Icons</td>
-                  <td className="p-3">Framer Motion (motion/react) & Lucide Icons</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">Animasi &amp; ikon</td>
+                  <td className="p-3">motion/react &amp; Lucide</td>
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium text-white">PWA Infrastructure</td>
-                  <td className="p-3">Service Worker registration, manifest routing</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">API produksi</td>
+                  <td className="p-3">Cloudflare Pages Worker (worker/_worker.js) + Cobalt v10 API</td>
                 </tr>
                 <tr>
-                  <td className="p-3 font-medium text-white">HTTP Client & Streams</td>
-                  <td className="p-3">Axios & Node.js Native Streams</td>
+                  <td className="p-3 font-medium text-[var(--busa)]">PWA</td>
+                  <td className="p-3">Service worker, manifest</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </section>
 
-        {/* Installation Section */}
-        <section className="chess-glass rounded-3xl p-6 md:p-8 border border-white/5 space-y-4">
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-white" />
-            <h2 className="text-base md:text-lg font-bold text-white tracking-wide">📦 Installation & Setup</h2>
+        <section className="dock-panel space-y-4 p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <FileText className="h-5 w-5 text-[var(--rambu)]" /> Instalasi &amp; setup
+          </h2>
+          <p className="text-sm text-[var(--kabut)]">
+            Menjalankan DezDownload lokal dalam hitungan detik:
+          </p>
+          <div className="space-y-2">
+            <span className="block text-sm font-bold">1. Clone repositori</span>
+            <pre className="overflow-x-auto rounded-[8px] border border-[var(--garis)] bg-black/30 p-4 font-mono text-xs text-[var(--kabut)]">
+{`git clone https://github.com/dezzorigin/dez-download.git
+cd dez-download`}
+            </pre>
           </div>
-          <div className="space-y-4 text-xs">
-            <p className="text-zinc-400">Get DezDownload running locally on your machine in seconds:</p>
-            <div className="space-y-2">
-              <span className="text-white font-bold block">1. Clone the Repository</span>
-              <pre className="p-4 rounded-xl bg-zinc-950 border border-white/5 font-mono text-[10px] md:text-xs text-zinc-300 overflow-x-auto">
-{`git clone https://github.com/nblauliadka/DezDownload.git
-cd DezDownload`}
-              </pre>
-            </div>
-            <div className="space-y-2">
-              <span className="text-white font-bold block">2. Install Dependencies</span>
-              <pre className="p-4 rounded-xl bg-zinc-950 border border-white/5 font-mono text-[10px] md:text-xs text-zinc-300 overflow-x-auto">
-{`npm install`}
-              </pre>
-            </div>
-            <div className="space-y-2">
-              <span className="text-white font-bold block">3. Configure Environment Variables</span>
-              <p className="text-zinc-500">Create a <code className="text-zinc-300">.env.local</code> file at the root of the project:</p>
-              <pre className="p-4 rounded-xl bg-zinc-950 border border-white/5 font-mono text-[10px] md:text-xs text-zinc-300 overflow-x-auto">
-{`NEXT_PUBLIC_APP_URL=http://localhost:3000`}
-              </pre>
-            </div>
-            <div className="space-y-2">
-              <span className="text-white font-bold block">4. Start the Development Server</span>
-              <pre className="p-4 rounded-xl bg-zinc-950 border border-white/5 font-mono text-[10px] md:text-xs text-zinc-300 overflow-x-auto">
-{`npm run dev`}
-              </pre>
-            </div>
+          <div className="space-y-2">
+            <span className="block text-sm font-bold">2. Install dependensi</span>
+            <pre className="overflow-x-auto rounded-[8px] border border-[var(--garis)] bg-black/30 p-4 font-mono text-xs text-[var(--kabut)]">
+{`npm ci`}
+            </pre>
           </div>
-        </section>
-
-        {/* Blurred Core Architecture Section with GitHub Paywall */}
-        <section className="relative border border-white/10 rounded-3xl bg-black/40 overflow-hidden shadow-2xl p-6 md:p-8">
-          <div className="flex items-center gap-2 mb-6">
-            <Server className="w-5 h-5 text-white" />
-            <h2 className="text-lg font-bold text-white tracking-wide">🧠 Core Architecture</h2>
-          </div>
-          
-          {/* Blurred/masked content */}
-          <div 
-            className="space-y-6 select-none pointer-events-none"
-            style={{ 
-              maskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to bottom, black 40%, transparent 100%)',
-            }}
-          >
-            <p className="text-zinc-400 text-xs md:text-sm leading-relaxed">
-              DezDownload operates on a distributed stream-pooling architecture designed for ultra-low latency, parallel extraction, and fail-safe redundancy. The system routes all incoming media URLs through a set of specialized decoders that communicate with remote extraction clusters.
+          <div className="space-y-2">
+            <span className="block text-sm font-bold">3. Konfigurasi environment (opsional)</span>
+            <p className="text-xs text-[var(--kabut)]">
+              Salin <code className="font-mono text-[11px] text-[var(--busa)]">.env.example</code> ke{" "}
+              <code className="font-mono text-[11px] text-[var(--busa)]">.env.local</code> bila
+              memakai instance Cobalt sendiri:
             </p>
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">1. High-Performance Stream Proxying</h3>
-              <p className="text-zinc-400 text-xs md:text-sm leading-relaxed">
-                By bypassing client-side browser restrictions through an optimized routing gateway, DezDownload ensures that cross-origin media files (video/mp4, video/webm, audio/mp3) can be downloaded directly onto local storage without triggering navigation or security blocks.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">2. Token-Based Request Rotation</h3>
-              <p className="text-zinc-400 text-xs md:text-sm leading-relaxed">
-                A dynamic header injection layer automatically rotates credentials, user-agents, and cookies to minimize rate-limiting and connection throttling from high-traffic content networks.
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">3. Concurrency Protection & In-Memory Cache</h3>
-              <p className="text-zinc-400 text-xs md:text-sm leading-relaxed">
-                An internal lock manager synchronizes duplicate request streams, while a short-lived cache prevents redundant operations to downstream extraction services, improving overall server performance.
-              </p>
-            </div>
+            <pre className="overflow-x-auto rounded-[8px] border border-[var(--garis)] bg-black/30 p-4 font-mono text-xs text-[var(--kabut)]">
+{`COBALT_API_URL=https://api.cobalt.tools
+# COBALT_API_KEY=isi-bila-instance-butuh-auth`}
+            </pre>
           </div>
-
-          {/* Blur backdrop & CTA Paywall Overlay */}
-          <div className="absolute inset-x-0 bottom-0 top-[20%] backdrop-blur-[5px] bg-gradient-to-b from-transparent via-[#050505]/90 to-[#050505] flex items-center justify-center p-6">
-            <div className="chess-glass max-w-md w-full rounded-[24px] p-6 md:p-8 flex flex-col items-center text-center shadow-[0_24px_60px_rgba(0,0,0,0.9)] border border-white/10">
-              <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-5">
-                <Lock className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2 tracking-wide">Developer Documentation Paywall</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-                ⭐ Star the repository and Follow <span className="text-white font-semibold">@nblauliadka</span> on GitHub to unlock the complete Core Architecture specs and production source code.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
-                <a 
-                  href="https://github.com/nblauliadka/DezDownload" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-white hover:bg-zinc-200 text-black font-bold text-xs px-5 py-3 rounded-full transition-all duration-200 cursor-pointer shadow-lg active:scale-95 flex items-center justify-center gap-1.5"
-                >
-                  <Github className="w-3.5 h-3.5" />
-                  View Repository
-                </a>
-                <a 
-                  href="https://github.com/nblauliadka" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="bg-transparent hover:bg-white/5 border border-white/10 text-white font-semibold text-xs px-5 py-3 rounded-full transition-all duration-200 cursor-pointer active:scale-95 flex items-center justify-center"
-                >
-                  Follow @nblauliadka
-                </a>
-              </div>
-            </div>
+          <div className="space-y-2">
+            <span className="block text-sm font-bold">4. Jalankan (build statis + worker lokal)</span>
+            <pre className="overflow-x-auto rounded-[8px] border border-[var(--garis)] bg-black/30 p-4 font-mono text-xs text-[var(--kabut)]">
+{`npm run build
+npm run serve   # http://127.0.0.1:8500 — sajikan out/ + worker`}
+            </pre>
+            <p className="text-xs text-[var(--kabut)]">
+              <code className="font-mono text-[11px] text-[var(--busa)]">npm run dev</code>{" "}
+              hanya menyajikan frontend — rute /api/* hidup lewat worker,
+              jadi pakai <code className="font-mono text-[11px] text-[var(--busa)]">npm run serve</code>{" "}
+              untuk menguji ekstraksi end-to-end secara lokal.
+            </p>
           </div>
         </section>
 
+        <section className="dock-panel p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Server className="h-5 w-5 text-[var(--rambu)]" /> Arsitektur
+          </h2>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--kabut)]">
+            Browser → halaman statis (Next.js export di Cloudflare Pages) →
+            Pages Worker (<code className="font-mono text-[13px] text-[var(--busa)]">worker/_worker.js</code>) →
+            Cobalt API (dua panggilan paralel: video auto + audio) → manifest
+            format kembali ke browser. Worker memegang cache 10 menit dan
+            menggabungkan permintaan duplikat. Diagram lengkap ada di{" "}
+            <code className="font-mono text-[13px] text-[var(--busa)]">docs/architecture.html</code>{" "}
+            dan penjelasan per lapisan di{" "}
+            <code className="font-mono text-[13px] text-[var(--busa)]">docs/ARCHITECTURE.md</code>.
+          </p>
+          <h3 className="mt-5 text-sm font-bold tracking-wide uppercase">Endpoint worker</h3>
+          <ul className="mt-2 space-y-2 font-mono text-xs text-[var(--kabut)]">
+            <li className="rounded-[4px] border border-[var(--garis)] bg-black/30 px-3 py-2">
+              GET /api/download?url=… — ekstrak media (juga menerima POST JSON{" "}
+              <code className="font-mono text-[11px] text-[var(--busa)]">{'{"url": …}'}</code>)
+            </li>
+            <li className="rounded-[4px] border border-[var(--garis)] bg-black/30 px-3 py-2">
+              GET /api/proxy?url=…&amp;filename=… — unduh media sebagai attachment
+            </li>
+          </ul>
+        </section>
+
+        <section className="dock-panel p-6 md:p-8">
+          <h2 className="flex items-center gap-2 text-lg font-bold">
+            <Lock className="h-5 w-5 text-[var(--rambu)]" /> Batasan yang jujur
+          </h2>
+          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-[var(--kabut)]">
+            <li>
+              Instance publik Cobalt (<code className="font-mono text-[13px] text-[var(--busa)]">api.cobalt.tools</code>)
+              kini meminta autentikasi — tanpa <code className="font-mono text-[13px] text-[var(--busa)]">COBALT_API_KEY</code>{" "}
+              atau instance sendiri, ekstraksi akan gagal dengan pesan yang
+              menjelaskan hal itu.
+            </li>
+            <li>
+              Tidak semua tautan dari 54 platform pasti berhasil — platform
+              bisa menolak, membatasi, atau mengubah formatnya sewaktu-waktu.
+            </li>
+            <li>
+              Worker tidak menyimpan media, riwayat, atau akun apa pun.
+            </li>
+          </ul>
+        </section>
       </main>
 
-      {/* Legal Drawer */}
+      {/* ── Drawer Legal ── */}
       <AnimatePresence>
         {isDrawerOpen && (
           <>
-            {/* Backdrop Overlay */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 cursor-pointer"
+              className="fixed inset-0 z-40 cursor-pointer bg-black/60 backdrop-blur-sm"
             />
-            {/* Drawer Panel */}
-            <motion.div 
+            <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-zinc-950 border-l border-white/10 shadow-2xl flex flex-col h-full"
+              className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l border-[var(--garis)] bg-[#0e2427] shadow-2xl"
+              role="dialog"
+              aria-label="Legal dan Terms"
             >
-              {/* Header */}
-              <div className="sticky top-0 z-50 bg-[#0a0a0a] p-6 md:p-8 border-b border-white/10 flex items-center justify-between shrink-0">
-                <h3 className="text-lg font-bold text-white">Legal & Terms</h3>
-                <button 
+              <div className="sticky top-0 z-50 flex shrink-0 items-center justify-between border-b border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
+                <h3 className="text-lg font-bold">Legal &amp; Terms</h3>
+                <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-[8px] p-2 text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+                  aria-label="Tutup panel legal"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
-
-              {/* Body Content (Scrollable) */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 text-xs text-zinc-400 leading-relaxed">
+              <div className="flex-1 space-y-6 overflow-y-auto p-6 text-xs leading-relaxed text-[var(--kabut)] md:p-8">
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">About DezDownload</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Tentang DezDownload</h4>
                   <p>
-                    DezDownload is a high-performance web utility built on a fast, modern Next.js client routing architecture. Created by developer DezReacher, it provides structured extraction for public media sources with latency optimization and fail-safe redundancy.
+                    DezDownload adalah utilitas web yang dibangun di atas
+                    Next.js dan Cobalt API oleh dezzorigin untuk mengekstrak
+                    media publik dari berbagai platform.
                   </p>
                 </div>
-
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">Terms of Service</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Ketentuan Layanan</h4>
                   <p>
-                    DezDownload is an educational utility tool designed for extracting publicly available media. By using this service, you agree to access content only for personal, non-commercial use. Users assume full legal responsibility for the media they access and download.
+                    DezDownload adalah utilitas edukasi untuk mengekstrak media
+                    yang tersedia secara publik, hanya untuk penggunaan pribadi
+                    dan non-komersial. Pengguna bertanggung jawab penuh secara
+                    hukum atas media yang diakses dan diunduh.
                   </p>
                 </div>
-
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">Privacy Policy</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Privasi</h4>
                   <p>
-                    We value user privacy. DezDownload functions solely as a client-side routing mechanism. We do not store, host, collect, or cache any user-extracted media files or personal data on our servers.
+                    Kami tidak menyimpan, me-host, mengumpulkan, atau
+                    meng-cache file media hasil ekstraksi maupun data pribadi
+                    pengguna di server kami.
                   </p>
                 </div>
-
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">DMCA & Copyright Policy</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">DMCA &amp; Hak Cipta</h4>
                   <p>
-                    We strictly prohibit the use of this tool for copyright infringement. DezDownload does not host or store copyrighted material on its servers. If you are a copyright owner and wish to restrict extraction from a specific source platform, please contact the originating platform directly.
+                    Kami melarang pemakaian alat ini untuk pelanggaran hak
+                    cipta. DezDownload tidak me-host materi berhak cipta.
+                    Pemilik hak cipta yang ingin membatasi ekstraksi dari suatu
+                    platform silakan menghubungi platform asal tersebut.
                   </p>
                 </div>
               </div>
-
-              {/* Close Footer Trigger */}
-              <div className="p-6 md:p-8 border-t border-white/10 bg-[#0a0a0a] shrink-0">
-                <button 
+              <div className="shrink-0 border-t border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
+                <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="w-full bg-white text-black font-bold text-xs py-3 rounded-full hover:bg-zinc-200 transition-colors cursor-pointer"
+                  className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                 >
-                  Close Panel
+                  Tutup Panel
                 </button>
               </div>
             </motion.div>
@@ -445,58 +445,65 @@ cd DezDownload`}
         )}
       </AnimatePresence>
 
-      {/* Footer */}
-      <footer className="w-full border-t border-white/10 py-6 bg-[#080808] px-6 mt-auto">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
-          <p>DezDownload © {new Date().getFullYear()} • Designed by DezReacher</p>
-          <a 
+      <footer className="w-full border-t border-[var(--garis)] bg-[#0a1a1d] px-4 py-6 md:px-6">
+        <div className="mx-auto flex w-full max-w-4xl flex-col items-center justify-between gap-4 text-xs text-[var(--kabut)] sm:flex-row">
+          <p>DezDownload © {new Date().getFullYear()} · dezzorigin</p>
+          <a
             href="/"
-            className="hover:text-white transition-colors cursor-pointer font-medium flex items-center gap-1"
+            className="flex items-center gap-1 font-medium transition-colors hover:text-[var(--busa)]"
           >
-            <ArrowLeft className="w-3 h-3" /> Back to Home
+            <ArrowLeft className="h-3 w-3" /> Kembali ke Beranda
           </a>
         </div>
       </footer>
 
-      {/* Install Instructions Modal */}
+      {/* ── Modal cara install ── */}
       <AnimatePresence>
         {showInstallInstructions && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowInstallInstructions(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-pointer"
+              className="fixed inset-0 z-50 cursor-pointer bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92%] max-w-sm chess-glass p-6 rounded-3xl shadow-2xl border border-white/10 text-center animate-fade-in"
+              className="dock-panel fixed top-1/2 left-1/2 z-50 w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 p-6 text-center shadow-2xl"
+              role="dialog"
+              aria-label="Cara install"
             >
-              <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2 font-sans tracking-wide">How to Install</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed mb-6">
-                For the best experience, add DezDownload to your home screen:
-                <br /><br />
-                <span className="text-white font-semibold">Safari (iOS):</span> Tap the <span className="font-bold text-white underline">Share</span> button, scroll down, and select <span className="text-white font-semibold">"Add to Home Screen"</span>.
-                <br /><br />
-                <span className="text-white font-semibold">Chrome / Firefox:</span> Click the install button in the address bar or menu.
+              <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--garis-kuat)] bg-white/5">
+                <ArrowDownToLine className="h-5 w-5" />
+              </span>
+              <h3 className="text-lg font-bold tracking-wide">Cara Install</h3>
+              <p className="mt-2 mb-6 text-xs leading-relaxed text-[var(--kabut)]">
+                Untuk pengalaman terbaik, tambahkan DezDownload ke layar utama:
+                <br />
+                <br />
+                <span className="font-semibold text-[var(--busa)]">Safari (iOS):</span>{" "}
+                Ketuk tombol{" "}
+                <span className="font-bold text-[var(--busa)] underline">Share</span>, gulir ke
+                bawah, lalu pilih{" "}
+                <span className="font-semibold text-[var(--busa)]">“Add to Home Screen”</span>.
+                <br />
+                <br />
+                <span className="font-semibold text-[var(--busa)]">Chrome / Firefox:</span>{" "}
+                Klik tombol install di address bar atau menu.
               </p>
-              <button 
+              <button
                 onClick={() => setShowInstallInstructions(false)}
-                className="w-full bg-white text-black font-bold text-xs py-3 rounded-full hover:bg-zinc-200 transition-colors cursor-pointer"
+                className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
               >
-                Got It
+                Mengerti
               </button>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-
     </div>
   );
 }

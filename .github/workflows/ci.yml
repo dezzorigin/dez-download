@@ -1,0 +1,225 @@
+name: CI
+
+# CI untuk dez-download (repo P1 #50 — downloader media via Cobalt API,
+# Next.js 15 static export + Cloudflare Pages Worker).
+# Job:
+#   build          — npm ci + typecheck + lint + next build (static export
+#                    + copy worker/_worker.js ke out/_worker.js).
+#   worker-test    — node --test worker/_worker.test.mjs (9 tes pure).
+#   advisory-sweep — OSV batch (pola repo #24-#49); dependensi produksi
+#                    dari package-lock.json (dev != true). HIGH/CRITICAL
+#                    = gagal. JANGAN pakai npm audit sebagai gate (gagal
+#                    deterministik pada advisory dev-only).
+#   static-checks  — gate P0 anti-slop + tag OG/Twitter + data asli repo
+#                    (scripts/check-static.py; og-image diregenerasi dulu).
+#   playwright-e2e — tool page + ekstraksi mock + drawer + API 400 + mobile.
+#                    HANYA di CI; Chromium lokal tidak bisa start di VM dev.
+#                    Playwright diinstal ke prefix terisolasi /tmp/pw
+#                    (bukan di repo) + dijalankan via NODE_PATH.
+#   smoke          — marker di out/ + sajikan out/ + worker lalu curl:
+#                    landing 200 + marker, /api/download & /api/proxy
+#                    tanpa url -> 400, og-image 200 image/*, 404.
+#   live-smoke     — (main saja, non-gating) situs produksi Pages.
+# Repo ini PUNYA package-lock.json: CI pakai `npm ci` + `cache: npm`.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build (static export + worker)
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Upload static output
+        uses: actions/upload-artifact@v4
+        with:
+          name: out
+          path: out/
+
+  worker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Worker unit tests (9 tes pure, tanpa network)
+        run: npm test
+
+  advisory-sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Sweep dependensi produksi (npm) di OSV
+        run: python3 scripts/advisory-sweep.py
+
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pillow (generator og-image)
+        run: pip install pillow
+
+      - name: Regenerasi og-image.png (pastikan skrip jalan)
+        run: python3 scripts/make-og-image.py
+
+      - name: Gate P0 + tag OG/Twitter + data asli repo
+        run: python3 scripts/check-static.py
+
+  playwright-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Playwright BUKAN dependensi repo (tidak ada di package-lock.json).
+      # Dua bentuk `npm install <pkg>` DI DALAM repo gagal di runner
+      # (run 44511208537 step --no-save, run 44514544194 step -D — penyebab
+      # pasti tak terbaca karena log 401; keduanya memutasi package.json/
+      # lock repo). Solusi: instal ke prefix terisolasi /tmp/pw (package.json
+      # + lock miliknya sendiri, repo tak disentuh), lalu jalankan binary-nya
+      # dengan NODE_PATH supaya import "@playwright/test" di config/spec
+      # ter-resolve — npx saja TIDAK cukup (terbukti lokal: "Error: Cannot
+      # find module '@playwright/test'"; NODE_PATH terbukti bisa).
+      - name: Install Playwright (prefix terisolasi /tmp/pw)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/pw
+          cd /tmp/pw
+          npm init -y
+          npm install @playwright/test@1.49.0
+
+      - name: Install Playwright browsers
+        run: /tmp/pw/node_modules/.bin/playwright install --with-deps chromium
+
+      - name: E2E tool page + ekstraksi mock (desktop + Pixel 7)
+        run: NODE_PATH=/tmp/pw/node_modules /tmp/pw/node_modules/.bin/playwright test
+
+  smoke:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Download static output
+        uses: actions/download-artifact@v4
+        with:
+          name: out
+          path: out
+
+      - name: Static markers
+        run: node scripts/smoke.mjs
+
+      - name: Serve + live API checks
+        run: |
+          set -euo pipefail
+          (PORT=8500 node scripts/serve-worker.mjs > /tmp/serve.log 2>&1 &)
+          for i in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8500/ > /dev/null && break
+            sleep 1
+          done
+          code=$(curl -s -o /tmp/landing.html -w "%{http_code}" http://127.0.0.1:8500/)
+          echo "landing HTTP $code"; test "$code" = "200"
+          grep -qi "Extract Media" /tmp/landing.html
+          grep -qi "og:title" /tmp/landing.html
+          grep -qi "dez-download.pages.dev/og-image.png" /tmp/landing.html
+          # /api/download tanpa url -> 400 (tanpa memanggil Cobalt)
+          code=$(curl -s -o /tmp/d400.json -w "%{http_code}" "http://127.0.0.1:8500/api/download")
+          echo "GET /api/download (tanpa url) HTTP $code: $(cat /tmp/d400.json)"
+          test "$code" = "400"
+          # /api/proxy tanpa url -> 400
+          code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:8500/api/proxy")
+          echo "GET /api/proxy (tanpa url) HTTP $code"
+          test "$code" = "400"
+          # og-image tersaji sebagai image/*
+          ctype=$(curl -s -o /dev/null -w "%{content_type}" http://127.0.0.1:8500/og-image.png)
+          echo "og-image content-type: $ctype"
+          case "$ctype" in image/*) ;; *) echo "FAIL: og-image bukan image/*"; exit 1;; esac
+          # /docs tersaji
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8500/docs/)
+          echo "GET /docs/ HTTP $code"; test "$code" = "200"
+          # Halaman tak dikenal -> 404
+          code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8500/halaman-tidak-ada)
+          echo "GET /halaman-tidak-ada HTTP $code"; test "$code" = "404"
+
+  # Live smoke test terhadap situs produksi (https://dez-download.pages.dev).
+  # Read-only: TIDAK memanggil Cobalt dengan URL nyata (hanya validasi 400).
+  # Non-gating (continue-on-error): merahnya bisa berarti Pages sedang
+  # deploy ulang, bukan kode repo yang rusak.
+  live-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - name: Landing live (HTTP 200 + marker + og tags)
+        run: |
+          set -euo pipefail
+          code=$(curl -s -o /tmp/landing.html -w "%{http_code}" "https://dez-download.pages.dev/")
+          echo "landing HTTP $code"
+          test "$code" = "200"
+          grep -qi "Extract Media" /tmp/landing.html
+          grep -qi "og:title" /tmp/landing.html
+          grep -qi "twitter:card" /tmp/landing.html
+
+      - name: og-image + API validation live
+        run: |
+          set -euo pipefail
+          ctype=$(curl -s -o /dev/null -w "%{content_type}" "https://dez-download.pages.dev/og-image.png")
+          echo "og-image content-type: $ctype"
+          case "$ctype" in image/*) ;; *) echo "FAIL: og-image bukan image/*"; exit 1;; esac
+          code=$(curl -s -o /tmp/d400.json -w "%{http_code}" "https://dez-download.pages.dev/api/download")
+          echo "GET /api/download (tanpa url) HTTP $code: $(cat /tmp/d400.json)"
+          test "$code" = "400"

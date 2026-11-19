@@ -1,8 +1,8 @@
 {
   "name": "DezDownload",
   "short_name": "DezDownload",
-  "theme_color": "#050505",
-  "background_color": "#050505",
+  "theme_color": "#0C1F22",
+  "background_color": "#0C1F22",
   "display": "standalone",
   "orientation": "portrait",
   "scope": "/",

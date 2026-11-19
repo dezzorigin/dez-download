@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { 
-  Download, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Sparkles, Globe, Github, X, Menu,
+import { useState, useEffect, useRef } from "react";
+import {
+  Download, Link as LinkIcon, AlertCircle, CheckCircle2, Loader2, Globe, Github, X, Menu,
   Video, Instagram, Youtube, Twitter, MessageSquare, Music, Headphones, Tv, Ghost, Facebook,
   MessageCircle, Image, Linkedin, Play, Share2, Film, Disc, Smile, FileText, Gitlab, Clipboard,
-  Wrench, ExternalLink, Server
+  Volume2, VolumeX, ArrowDownToLine, Anchor,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { forceDownload } from "@/lib/utils";
+
+const REPO_URL = "https://github.com/dezzorigin/dez-download";
 
 const platforms = [
   { name: "TikTok", icon: Video },
@@ -64,7 +66,7 @@ const platforms = [
   { name: "GitHub", icon: Github },
   { name: "GitLab", icon: Gitlab },
   { name: "Dribbble", icon: Image },
-  { name: "Behance", icon: Image }
+  { name: "Behance", icon: Image },
 ];
 
 function isUrl(str: string) {
@@ -76,30 +78,30 @@ function isUrl(str: string) {
   }
 }
 
-function gatherLinks(obj: any): { label: string, url: string }[] {
-  const links: { label: string, url: string }[] = [];
-  
-  if (typeof obj === 'string' && isUrl(obj)) {
-    links.push({ label: 'Media Source', url: obj });
+function gatherLinks(obj: any): { label: string; url: string }[] {
+  const links: { label: string; url: string }[] = [];
+
+  if (typeof obj === "string" && isUrl(obj)) {
+    links.push({ label: "Media Source", url: obj });
     return links;
   }
-  
+
   if (Array.isArray(obj)) {
     obj.forEach((item, index) => {
-      if (typeof item === 'string' && isUrl(item)) {
+      if (typeof item === "string" && isUrl(item)) {
         links.push({ label: `Media Link ${index + 1}`, url: item });
-      } else if (typeof item === 'object') {
+      } else if (typeof item === "object") {
         links.push(...gatherLinks(item));
       }
     });
-  } else if (obj && typeof obj === 'object') {
+  } else if (obj && typeof obj === "object") {
     Object.entries(obj).forEach(([key, value]) => {
-      if (typeof value === 'string' && isUrl(value)) {
-        const cleanKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      if (typeof value === "string" && isUrl(value)) {
+        const cleanKey = key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
         links.push({ label: cleanKey, url: value });
-      } else if (typeof value === 'object') {
+      } else if (typeof value === "object") {
         const nested = gatherLinks(value);
-        nested.forEach(n => links.push({ label: `${key} - ${n.label}`, url: n.url }));
+        nested.forEach((n) => links.push({ label: `${key} - ${n.label}`, url: n.url }));
       }
     });
   }
@@ -118,84 +120,64 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   const resultRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "info" | "error" | "warning">("success");
 
-  // ── MAINTENANCE MODE ──────────────────────────────────────────────
-  const MAINTENANCE_MODE = true;
-  const [showMaintenanceModal, setShowMaintenanceModal] = useState(false);
-  const maintenanceToastFired = useRef(false);
-  // ─────────────────────────────────────────────────────────────────
-
-  // Show maintenance modal on mount (with short delay for polish)
+  // Timer penghilang toast + scroll ke hasil — tanpa setState sinkron
+  // di badan effect (react-hooks/set-state-in-effect); toast-nya sendiri
+  // di-set di handleDownload (event handler).
   useEffect(() => {
-    if (MAINTENANCE_MODE) {
-      const timer = setTimeout(() => setShowMaintenanceModal(true), 600);
-      return () => clearTimeout(timer);
-    }
-  }, []);
-
-  // Auto-dismiss maintenance toast after 5 s
-  const fireMaintenanceToast = useCallback(() => {
-    if (maintenanceToastFired.current) return;
-    maintenanceToastFired.current = true;
-    setToastType("warning");
-    setToastMessage("Server sedang dalam perbaikan 🛠️. Silakan cek GitHub kami untuk sementara waktu!");
-    setShowToast(true);
-    setTimeout(() => {
+    if (!result) return;
+    const toastTimer = setTimeout(() => {
       setShowToast(false);
-      maintenanceToastFired.current = false;
-    }, 5000);
-  }, []);
+    }, 4000);
 
-  useEffect(() => {
-    if (result) {
-      setToastType("success");
-      setToastMessage("Media extracted successfully!");
-      setShowToast(true);
-      const toastTimer = setTimeout(() => {
-        setShowToast(false);
-      }, 4000);
+    const scrollTimer = setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
 
-      const scrollTimer = setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-
-      return () => {
-        clearTimeout(toastTimer);
-        clearTimeout(scrollTimer);
-      };
-    }
+    return () => {
+      clearTimeout(toastTimer);
+      clearTimeout(scrollTimer);
+    };
   }, [result]);
 
   useEffect(() => {
     const handleDownloadTriggered = (e: Event) => {
       const customEvent = e as CustomEvent;
       setToastType("info");
-      setToastMessage(customEvent.detail?.message || "Opening media directly. If it plays, simply long-press or right-click to save.");
+      setToastMessage(
+        customEvent.detail?.message ||
+          "Media opens directly. If a video starts playing, long-press or right-click to save it.",
+      );
       setShowToast(true);
     };
 
-    window.addEventListener('media-download-triggered', handleDownloadTriggered);
+    window.addEventListener("media-download-triggered", handleDownloadTriggered);
     return () => {
-      window.removeEventListener('media-download-triggered', handleDownloadTriggered);
+      window.removeEventListener("media-download-triggered", handleDownloadTriggered);
     };
   }, []);
 
+  // Buka drawer platform bila URL membawa ?platforms=true. setState
+  // di-defer ke macrotask supaya tidak sinkron di badan effect
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    const timer = setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("platforms") === "true") {
         setIsPlatformsDrawerOpen(true);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(console.error);
     }
 
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -203,8 +185,8 @@ export default function Home() {
       setDeferredPrompt(e);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, []);
 
   useEffect(() => {
@@ -212,7 +194,7 @@ export default function Home() {
       const showTimer = setTimeout(() => {
         setShowInstallPopup(true);
       }, 1000);
-      
+
       const hideTimer = setTimeout(() => {
         setShowInstallPopup(false);
       }, 9500);
@@ -226,12 +208,11 @@ export default function Home() {
 
   const handleInstallClick = async () => {
     setShowInstallPopup(false);
-    if (deferredPrompt && typeof deferredPrompt.prompt === 'function') {
+    if (deferredPrompt && typeof deferredPrompt.prompt === "function") {
       try {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        if (outcome === 'accepted') {
+        if (outcome === "accepted") {
           setDeferredPrompt(null);
         }
       } catch (err) {
@@ -248,20 +229,19 @@ export default function Home() {
       const trimmed = inputUrl.trim();
       const parsed = new URL(trimmed);
       const params = new URLSearchParams(parsed.search);
-      
-      // Specifically strip out 'list' and 'si'
+
+      // Strip playlist + tracking params yang membuat Cobalt menolak URL.
       params.delete("list");
       params.delete("si");
-      
-      // Strip out any trailing empty parameters
+
       const keysToDelete: string[] = [];
       params.forEach((value, key) => {
         if (!key || value === "" || value === null || value === undefined) {
           keysToDelete.push(key);
         }
       });
-      keysToDelete.forEach(key => params.delete(key));
-      
+      keysToDelete.forEach((key) => params.delete(key));
+
       const searchString = params.toString();
       parsed.search = searchString ? `?${searchString}` : "";
       return parsed.toString();
@@ -276,7 +256,7 @@ export default function Home() {
 
     const sanitizedUrl = sanitizeUrl(url);
     setUrl(sanitizedUrl);
-    
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -285,37 +265,37 @@ export default function Home() {
       const res = await fetch(`/api/download?url=${encodeURIComponent(sanitizedUrl)}`, {
         method: "GET",
       });
-      
-      if (res.status === 500) {
-        setError("Failed to extract media. Please check the URL and try again.");
-        return;
-      }
-      
+
       let data;
       try {
         data = await res.json();
       } catch (jsonErr) {
-        setError("Failed to extract media. Please check the URL and try again.");
+        setError("Failed to extract media. Check the URL and try again.");
         return;
       }
-      
+
       if (!data || !data.Status) {
         const errorMsg = data?.Error || "";
         if (
           errorMsg === "user_retry_required" ||
           data?.Code === 403 ||
           errorMsg.includes("user_retry_required") ||
-          errorMsg.includes("diterima server")
+          errorMsg.includes("rejected by the server")
         ) {
-          setError("⚠️ URL tidak valid atau ditolak server. Pastikan link video bersih dari parameter tambahan (seperti playlist).");
+          setError(
+            "Invalid URL or rejected by the server. Make sure the video link is clean of extra parameters (like playlists).",
+          );
         } else {
-          setError(errorMsg || "Failed to extract media. Please check the URL and try again.");
+          setError(errorMsg || "Failed to extract media. Check the URL and try again.");
         }
       } else {
         setResult(data.Result);
+        setToastType("success");
+        setToastMessage("Media extracted successfully.");
+        setShowToast(true);
       }
     } catch (err: any) {
-      setError("Failed to extract media. Please check the URL and try again.");
+      setError("Failed to extract media. Check the URL and try again.");
     } finally {
       setLoading(false);
     }
@@ -323,62 +303,79 @@ export default function Home() {
 
   const handlePlatformClick = (platformName: string) => {
     let placeholder = "";
-    switch(platformName.toLowerCase()) {
-      case "tiktok": placeholder = "https://www.tiktok.com/"; break;
-      case "instagram": placeholder = "https://www.instagram.com/"; break;
-      case "youtube": placeholder = "https://www.youtube.com/watch?v="; break;
-      case "x (twitter)": placeholder = "https://x.com/"; break;
-      case "reddit": placeholder = "https://www.reddit.com/r/"; break;
-      case "spotify": placeholder = "https://open.spotify.com/track/"; break;
-      default: placeholder = `https://${platformName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com/`;
+    switch (platformName.toLowerCase()) {
+      case "tiktok":
+        placeholder = "https://www.tiktok.com/";
+        break;
+      case "instagram":
+        placeholder = "https://www.instagram.com/";
+        break;
+      case "youtube":
+        placeholder = "https://www.youtube.com/watch?v=";
+        break;
+      case "x (twitter)":
+        placeholder = "https://x.com/";
+        break;
+      case "reddit":
+        placeholder = "https://www.reddit.com/r/";
+        break;
+      case "spotify":
+        placeholder = "https://open.spotify.com/track/";
+        break;
+      default:
+        placeholder = `https://${platformName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com/`;
     }
     setUrl(placeholder);
     setIsPlatformsDrawerOpen(false);
+    inputRef.current?.focus();
   };
 
   // Group links into video and audio formats
   const mediasList = result?.medias && Array.isArray(result.medias) ? result.medias : [];
   const videos = mediasList.filter((item: any) => {
-    const type = (item.type || '').toLowerCase();
-    const ext = (item.ext || '').toLowerCase();
-    return type === 'video' || ext === 'mp4' || ext === 'webm';
+    const type = (item.type || "").toLowerCase();
+    const ext = (item.ext || "").toLowerCase();
+    return type === "video" || ext === "mp4" || ext === "webm";
   });
   const audios = mediasList.filter((item: any) => {
-    const type = (item.type || '').toLowerCase();
-    const ext = (item.ext || '').toLowerCase();
-    return type === 'audio' || ext === 'm4a' || ext === 'mp3' || ext === 'opus';
+    const type = (item.type || "").toLowerCase();
+    const ext = (item.ext || "").toLowerCase();
+    return type === "audio" || ext === "m4a" || ext === "mp3" || ext === "opus";
   });
-  const fallbackLinks = (mediasList.length === 0 && result) ? gatherLinks(result) : [];
+  const fallbackLinks = mediasList.length === 0 && result ? gatherLinks(result) : [];
 
   const getResolution = (item: any) => {
-    const quality = (item.quality || item.label || '').toLowerCase();
-    if (quality.includes('8k')) return 4320;
-    if (quality.includes('4k')) return 2160;
-    if (quality.includes('2k')) return 1440;
+    const quality = (item.quality || item.label || "").toLowerCase();
+    if (quality.includes("8k")) return 4320;
+    if (quality.includes("4k")) return 2160;
+    if (quality.includes("2k")) return 1440;
     const match = quality.match(/(\d+)p?/);
     if (match) return parseInt(match[1], 10);
-    if (quality.includes('hd')) return 720;
-    if (quality.includes('sd')) return 360;
+    if (quality.includes("hd")) return 720;
+    if (quality.includes("sd")) return 360;
     return 0;
   };
 
-  // Group and sort videos by format (mp4 and webm)
-  const mp4Videos = videos.filter((item: any) => (item.ext || '').toLowerCase() !== 'webm');
-  const webmVideos = videos.filter((item: any) => (item.ext || '').toLowerCase() === 'webm');
+  const mp4Videos = videos.filter((item: any) => (item.ext || "").toLowerCase() !== "webm");
+  const webmVideos = videos.filter((item: any) => (item.ext || "").toLowerCase() === "webm");
 
   const sortedMp4Videos = [...mp4Videos].sort((a, b) => getResolution(b) - getResolution(a));
   const sortedWebmVideos = [...webmVideos].sort((a, b) => getResolution(b) - getResolution(a));
 
-  const bestMp4WithAudio = sortedMp4Videos.find((item: any) => item.hasAudio !== false && item.audio !== false);
-  const bestWebmWithAudio = sortedWebmVideos.find((item: any) => item.hasAudio !== false && item.audio !== false);
+  const bestMp4WithAudio = sortedMp4Videos.find(
+    (item: any) => item.hasAudio !== false && item.audio !== false,
+  );
+  const bestWebmWithAudio = sortedWebmVideos.find(
+    (item: any) => item.hasAudio !== false && item.audio !== false,
+  );
 
   const getAudioQuality = (item: any) => {
-    const quality = (item.quality || item.label || '').toLowerCase();
+    const quality = (item.quality || item.label || "").toLowerCase();
     const match = quality.match(/(\d+)/);
     if (match) return parseInt(match[1], 10);
-    if (quality.includes('high')) return 320;
-    if (quality.includes('medium')) return 192;
-    if (quality.includes('low')) return 128;
+    if (quality.includes("high")) return 320;
+    if (quality.includes("medium")) return 192;
+    if (quality.includes("low")) return 128;
     return 0;
   };
 
@@ -387,229 +384,209 @@ export default function Home() {
   });
 
   const getMediaLabel = (item: any) => {
-    const type = (item.type || 'video').toLowerCase();
-    const ext = (item.ext || '').toUpperCase();
-    const quality = item.quality || item.label || '';
-    
-    if (type === 'audio') {
-      return `Download Audio (${ext}${quality ? ` - ${quality}` : ''})`;
+    const type = (item.type || "video").toLowerCase();
+    const ext = (item.ext || "").toUpperCase();
+    const quality = item.quality || item.label || "";
+
+    if (type === "audio") {
+      return `${ext}${quality ? ` · ${quality}` : ""}`;
     }
-    
-    const isHd = quality.includes('720') || quality.includes('1080') || quality.includes('1440') || quality.includes('2160') || quality.includes('4K') || quality.includes('HD');
-    const isWatermark = quality.toLowerCase().includes('watermark') && !quality.toLowerCase().includes('no');
-    
-    let label = `Download Video (${ext}`;
+
+    const isWatermark =
+      quality.toLowerCase().includes("watermark") && !quality.toLowerCase().includes("no");
+
+    let label = `${ext}`;
     if (quality) {
-      label += ` - ${quality}`;
-    } else if (isHd) {
-      label += ` - HD`;
+      label += ` · ${quality}`;
     }
     if (isWatermark) {
-      label += ` w/ Watermark`;
+      label += ` · watermark`;
     }
-    label += `)`;
     return label;
   };
 
+  const downloadMedia = (item: any, idx: number, kind: "video" | "audio" | "link", linkUrl?: string) => {
+    const title = result.title || "extracted_media";
+    const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
+    if (kind === "link" && linkUrl) {
+      const urlObj = new URL(linkUrl);
+      const match = urlObj.pathname.match(/\.([a-zA-Z0-9]+)$/);
+      const ext = match ? match[1] : "mp4";
+      forceDownload(linkUrl, `${cleanTitle}_link_${idx + 1}.${ext}`);
+      return;
+    }
+    const ext = item.ext || (kind === "audio" ? "mp3" : "mp4");
+    const quality = item.quality || item.label || "";
+    const filename =
+      kind === "audio"
+        ? `${cleanTitle}_audio_${quality ? `${quality}_` : ""}${idx + 1}.${ext}`
+        : `${cleanTitle}_${quality ? `${quality}_` : ""}${idx + 1}.${ext}`;
+    forceDownload(item.url, filename);
+  };
+
+  const renderFormatButton = (item: any, idx: number, kind: "video" | "audio", isBest: boolean) => {
+    const hasAudio = item.hasAudio !== false && item.audio !== false;
+    return (
+      <button
+        key={`${kind}-${idx}`}
+        onClick={(e) => {
+          e.preventDefault();
+          downloadMedia(item, idx, kind);
+        }}
+        className="flex min-h-11 w-full items-center justify-between gap-3 rounded-[4px] border border-[var(--garis-kuat)] bg-[var(--busa)] px-4 py-2.5 font-mono text-xs font-semibold text-[#0c1f22] transition-all duration-150 hover:bg-white active:scale-[0.97] cursor-pointer"
+      >
+        <span className="flex min-w-0 items-center gap-2 truncate text-left">
+          <Download className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+          <span className="truncate">{getMediaLabel(item)}</span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1.5">
+          {!hasAudio && (
+            <span className="flex items-center gap-1 rounded-[4px] border border-[#7a2e12] bg-[#fbe9e2] px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#7a2e12]">
+              <VolumeX className="h-3 w-3" /> VIDEO ONLY
+            </span>
+          )}
+          {isBest && (
+            <span className="flex items-center gap-1 rounded-[4px] border border-[#7a5b00] bg-[#fdf3cf] px-2 py-0.5 text-[10px] font-bold tracking-wide text-[#7a5b00]">
+              <Volume2 className="h-3 w-3" /> BEST WITH AUDIO
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  };
+
   return (
-    <>
-    <div className="flex flex-col min-h-screen w-full bg-[#050505] selection:bg-white selection:text-black overflow-x-hidden">
-      
-      {/* Floating Pill Navigation */}
-      <header className="fixed top-6 left-1/2 -translate-x-1/2 z-40 w-[92%] md:w-auto max-w-xl md:max-w-3xl chess-glass-pill py-2.5 px-4 md:py-3 md:px-6 flex items-center justify-between gap-4 md:gap-6 shadow-[0_12px_40px_rgba(0,0,0,0.6)]">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <div className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-white flex items-center justify-center">
-            <Download className="w-3.5 h-3.5 md:w-4 md:h-4 text-black" strokeWidth={3} />
+    <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--air)] text-[var(--busa)] selection:bg-[var(--pelampung)] selection:text-white">
+      {/* ── Header pil melayang (struktur asli repo) ─────────────── */}
+      <header className="fixed top-6 left-1/2 z-40 w-[92%] max-w-xl -translate-x-1/2 md:max-w-3xl">
+        <div className="flex items-center justify-between gap-4 rounded-full border border-[var(--garis)] bg-[var(--dermaga)]/95 px-4 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.6)] backdrop-blur md:px-6 md:py-3">
+          <a href="#" className="flex shrink-0 items-center gap-2.5" aria-label="DezDownload — home">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--pelampung)]">
+              <Anchor className="h-4.5 w-4.5 text-white" strokeWidth={2.5} />
+            </span>
+            <span className="text-sm font-bold tracking-tight md:text-base">DezDownload</span>
+          </a>
+
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+            <button
+              onClick={() => setIsPlatformsDrawerOpen(true)}
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Platforms
+            </button>
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Legal &amp; Terms
+            </button>
+            <button
+              onClick={handleInstallClick}
+              className="cursor-pointer rounded-full px-3 py-2 text-sm font-medium text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+            >
+              Install App
+            </button>
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <a
+              href={REPO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+              aria-label="DezDownload GitHub repository"
+            >
+              <Github className="h-4.5 w-4.5" />
+            </a>
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-full border border-[var(--garis-kuat)] text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] md:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={isMobileMenuOpen}
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
-          <span className="text-white font-extrabold text-xs md:text-sm tracking-wide">DezDownload</span>
-        </div>
-        
-        {/* Desktop Links (md:flex) */}
-        <nav className="hidden md:flex items-center gap-2.5 md:gap-4 lg:gap-5">
-          <a href="#" className="text-white text-xs md:text-sm font-semibold px-2.5 py-1 md:px-3.5 md:py-1.5 rounded-full bg-white/10">Home</a>
-          <button 
-            onClick={() => setIsPlatformsDrawerOpen(true)}
-            className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors cursor-pointer bg-transparent border-0 outline-none py-1 px-1.5 hover:bg-white/5 rounded-lg"
-          >
-            Platforms
-          </button>
-          <button 
-            onClick={() => setIsDrawerOpen(true)}
-            className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors cursor-pointer bg-transparent border-0 outline-none py-1 px-1.5 hover:bg-white/5 rounded-lg"
-          >
-            Legal & Terms
-          </button>
-          <a 
-            href="/docs" 
-            className="text-zinc-400 hover:text-white text-xs md:text-sm font-medium transition-colors py-1 px-1.5 hover:bg-white/5 rounded-lg"
-          >
-            Docs
-          </a>
-        </nav>
-
-        {/* Right side icons & buttons always visible on Mobile & Desktop */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <button 
-            onClick={handleInstallClick}
-            className="text-[#050505] bg-white hover:bg-zinc-200 text-[10px] md:text-xs font-bold px-2.5 py-1.5 md:px-3.5 md:py-1.5 rounded-full transition-all cursor-pointer active:scale-95 shrink-0 shadow-sm"
-          >
-            Install App
-          </button>
-          <a 
-            href="https://github.com/nblauliadka/DezDownload" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="text-zinc-400 hover:text-white transition-colors shrink-0 p-1 hover:bg-white/5 rounded-lg"
-            aria-label="GitHub Repository"
-          >
-            <Github className="w-4 h-4" />
-          </a>
-          
-          {/* Hamburger button (Mobile only) */}
-          <button
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="flex md:hidden text-zinc-400 hover:text-white transition-colors p-1 hover:bg-white/5 rounded-lg cursor-pointer"
-            aria-label="Toggle Menu"
-          >
-            {isMobileMenuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </button>
         </div>
 
-        {/* Mobile Dropdown Menu */}
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="absolute top-[110%] left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl rounded-2xl p-4 border border-white/10 flex flex-col gap-3 shadow-[0_12px_40px_rgba(0,0,0,0.8)] z-50 md:hidden animate-fade-in"
+            <motion.nav
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="mt-2 overflow-hidden rounded-[12px] border border-[var(--garis)] bg-[var(--dermaga)] shadow-2xl md:hidden"
+              aria-label="Mobile menu"
             >
-              <a 
-                href="#" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-white text-sm font-semibold py-2 px-3 bg-white/10 rounded-lg"
-              >
-                Home
-              </a>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsPlatformsDrawerOpen(true);
-                }}
-                className="text-left text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all bg-transparent border-0 outline-none w-full cursor-pointer"
-              >
-                Platforms
-              </button>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsDrawerOpen(true);
-                }}
-                className="text-left text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all bg-transparent border-0 outline-none w-full cursor-pointer"
-              >
-                Legal & Terms
-              </button>
-              <a 
-                href="/docs" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-zinc-300 hover:text-white text-sm font-semibold py-2 px-3 hover:bg-white/5 rounded-lg transition-all"
-              >
-                Docs
-              </a>
-            </motion.div>
+              <div className="flex flex-col gap-1 p-3">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsPlatformsDrawerOpen(true);
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
+                >
+                  Platforms
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsDrawerOpen(true);
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
+                >
+                  Legal &amp; Terms
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleInstallClick();
+                  }}
+                  className="cursor-pointer rounded-[4px] px-3 py-2.5 text-left text-sm font-medium hover:bg-white/5"
+                >
+                  Install App
+                </button>
+              </div>
+            </motion.nav>
           )}
         </AnimatePresence>
       </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 w-full overflow-x-hidden px-4 md:px-6 max-w-5xl lg:max-w-6xl mx-auto py-28 md:py-36 flex flex-col gap-12 md:gap-16">
-        
-        {/* Hero Section */}
-        <section className="w-full max-w-5xl mx-auto flex flex-col items-center text-center px-4 sm:px-6">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 chess-glass-pill text-zinc-300 px-4 py-2 mb-6 font-medium text-xs tracking-wider uppercase"
-          >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span>Universal API Integration</span>
-          </motion.div>
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-            className="w-full px-4 md:px-6 text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 bg-gradient-to-b from-white to-zinc-400 bg-clip-text text-transparent break-words"
-          >
-            DezDownload
-          </motion.h1>
-          
-          <motion.p 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2, ease: "easeOut" }}
-            className="w-full px-4 md:px-6 max-w-3xl mx-auto text-base md:text-lg lg:text-xl font-normal leading-relaxed text-zinc-400 mb-10 text-center"
-          >
-            The Ultimate Universal Downloader. Extract high-quality video, audio, and images from any social platform instantly. No limits, no ads, just raw media.
-          </motion.p>
-          
-          {/* Nuraform Input Box */}
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
-            className="w-full px-4 md:px-6 max-w-4xl lg:max-w-5xl mx-auto relative z-10"
-          >
-            {/* ── LAYER 3: Static Maintenance Banner ─────────────────────── */}
-            {MAINTENANCE_MODE && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-                className="mb-4 w-full flex items-start gap-3 bg-amber-950/40 border border-amber-700/40 text-amber-300 text-xs font-semibold px-5 py-3.5 rounded-2xl shadow-[0_0_24px_rgba(217,119,6,0.12)] backdrop-blur-md"
-              >
-                <Wrench className="w-4 h-4 shrink-0 mt-0.5 animate-pulse text-amber-400" />
-                <span className="leading-relaxed">
-                  <span className="text-amber-200 font-bold">⚠️ Extraction servers are currently down for maintenance.</span>{" "}
-                  While waiting, check out other cool stuff on{" "}
-                  <a
-                    href="https://github.com/nblauliadka"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-200 underline underline-offset-2 hover:text-white transition-colors font-bold"
-                  >
-                    GitHub ↗
-                  </a>
-                  .
-                </span>
-              </motion.div>
-            )}
+      <main className="w-full flex-1">
+        {/* ── Hero: alatnya sendiri, satu kolom terpusat ── */}
+        <section className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 pt-28 pb-10 text-center sm:px-6 md:pt-36">
+          <div>
+            <p className="mb-5 font-mono text-xs font-semibold tracking-[0.18em] text-[var(--rambu)]">
+              54 PLATFORMS · POWERED BY COBALT
+            </p>
+            <h1 className="text-5xl font-bold tracking-tight sm:text-6xl md:text-7xl">
+              DezDownload
+            </h1>
+            <p className="mx-auto mt-5 max-w-[60ch] text-base leading-relaxed text-[var(--kabut)] md:text-lg">
+              Extract high-quality video, audio, and images from any social
+              platform instantly. No account, no ads, nothing stored.
+            </p>
 
             <form
-              onSubmit={MAINTENANCE_MODE ? (e) => { e.preventDefault(); fireMaintenanceToast(); } : handleDownload}
-              className="w-full h-14 md:h-16 chess-glass rounded-full p-1.5 md:p-2 pl-4 md:pl-8 flex items-center gap-2 md:gap-3 shadow-2xl focus-within:ring-2 focus-within:ring-white/20 transition-all"
-              style={MAINTENANCE_MODE ? { opacity: 0.6, filter: "saturate(0.4)" } : {}}
+              onSubmit={handleDownload}
+              className="mt-8 flex h-14 w-full max-w-2xl items-center gap-2 rounded-full border border-[var(--garis-kuat)] bg-[var(--dermaga)] p-1.5 pl-5 transition-colors focus-within:border-[var(--rambu)] md:h-16"
             >
-              {/* ── LAYER 2: Input Blockade ──────────────────────────────── */}
-              <input 
-                type="url" 
-                placeholder={MAINTENANCE_MODE ? "Maintenance in progress..." : "Paste URL here..."}
-                className="flex-1 w-full max-w-[90vw] bg-transparent border-0 outline-none text-white text-base py-2 md:py-4 pl-1 md:pl-2 placeholder:text-zinc-600 focus:ring-0 focus:outline-none min-w-0 cursor-not-allowed select-none"
+              <LinkIcon className="h-4 w-4 shrink-0 text-[var(--kabut)]" />
+              <input
+                ref={inputRef}
+                type="url"
+                placeholder="Paste URL here..."
+                className="h-full min-w-0 flex-1 bg-transparent text-sm text-[var(--busa)] outline-none placeholder:text-[var(--kabut)] md:text-base"
                 value={url}
-                readOnly={MAINTENANCE_MODE}
-                onChange={MAINTENANCE_MODE ? undefined : (e) => setUrl(e.target.value)}
-                onClick={MAINTENANCE_MODE ? fireMaintenanceToast : undefined}
-                onFocus={MAINTENANCE_MODE ? fireMaintenanceToast : undefined}
-                disabled={!MAINTENANCE_MODE && loading}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={loading}
                 required
+                aria-label="Media link"
               />
-              {/* Clipboard Auto-Paste Button */}
               <button
                 type="button"
                 onClick={async () => {
-                  if (MAINTENANCE_MODE) { fireMaintenanceToast(); return; }
                   try {
                     const text = await navigator.clipboard.readText();
                     if (text) setUrl(text);
@@ -617,297 +594,214 @@ export default function Home() {
                     console.error("Failed to read clipboard:", err);
                   }
                 }}
-                className="p-2 text-zinc-400 hover:text-white transition-colors cursor-pointer rounded-full hover:bg-white/5 active:scale-95 shrink-0 flex items-center justify-center"
-                title={MAINTENANCE_MODE ? "Server maintenance" : "Paste from clipboard"}
+                className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center rounded-full text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)] active:scale-95"
+                title="Paste from clipboard"
+                aria-label="Paste from clipboard"
               >
-                <Clipboard className="w-4 h-4 md:w-5 md:h-5" />
+                <Clipboard className="h-4 w-4 md:h-5 md:w-5" />
               </button>
-              <button 
-                type="submit" 
-                disabled={(!MAINTENANCE_MODE && (loading || !url))}
-                className="h-11 md:h-12 shrink-0 bg-white text-black text-xs md:text-sm font-bold px-4 md:px-8 rounded-full hover:bg-zinc-200 disabled:bg-zinc-900 disabled:text-zinc-700 transition-all flex items-center justify-center gap-1.5 md:gap-2 cursor-pointer disabled:cursor-not-allowed hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] active:scale-95 duration-200"
+              <button
+                type="submit"
+                disabled={loading || !url}
+                className="flex h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full bg-[var(--pelampung)] px-5 text-xs font-bold text-white transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:bg-[#3a3f3e] disabled:text-[var(--kabut)] active:scale-[0.97] md:h-12 md:px-7 md:text-sm"
               >
-                {!MAINTENANCE_MODE && loading ? (
+                {loading ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" /> Processing
+                    <Loader2 className="h-4 w-4 animate-spin" /> Processing
                   </>
                 ) : (
                   <>
-                    <Download className="w-3.5 h-3.5 md:w-4 md:h-4" /> Extract Media
+                    <Download className="h-4 w-4" /> Extract Media
                   </>
                 )}
               </button>
             </form>
-            
-            {/* Implicit Consent Text */}
-            <p className="text-[10px] md:text-xs text-zinc-500 mt-4 text-center">
+
+            <p className="mt-4 max-w-[60ch] text-xs leading-relaxed text-[var(--kabut)]">
               By extracting media, you agree to our{" "}
-              <button 
+              <button
                 type="button"
                 onClick={() => setIsDrawerOpen(true)}
-                className="text-zinc-400 hover:text-white underline transition-colors cursor-pointer bg-transparent border-0 p-0 outline-none inline font-medium"
+                className="cursor-pointer font-medium text-[var(--busa)] underline underline-offset-2 hover:text-white"
               >
-                Legal & Terms
-              </button>
+                Legal &amp; Terms
+              </button>{" "}
+              — download only public media you have the right to save.
             </p>
-            
-            {/* Error Notification */}
+
             <AnimatePresence>
               {error && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  className="overflow-hidden"
+                <motion.div
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="mt-6 flex max-w-2xl items-start gap-2 rounded-[8px] border border-[#7a2e12] bg-[#2a1712] px-4 py-3 text-sm font-medium text-[#ffb59d]"
+                  role="alert"
                 >
-                  <div className="inline-flex items-center gap-2 bg-red-950/40 border border-red-900/50 text-red-400 text-xs font-semibold px-4 py-2.5 rounded-full">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{error}</span>
-                  </div>
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span>{error}</span>
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.div>
 
-          {/* Space divider */}
-          <div className="w-full mt-10" />
-
+            {/* Space divider (asli repo) */}
+            <div className="mt-10 w-full" />
+          </div>
         </section>
 
-        {/* Results Section */}
+        {/* ── Hasil ekstraksi (manifest nyata) ── */}
         <AnimatePresence mode="wait">
           {result && (
-            <motion.section 
+            <motion.section
               ref={resultRef}
               key="results"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.4 }}
-              className="flex flex-col items-center w-full"
+              transition={{ duration: 0.2 }}
+              className="mx-auto w-full max-w-6xl px-4 pb-4 md:px-6"
+              aria-label="Extraction results"
             >
-              <div className="w-full md:max-w-4xl lg:max-w-6xl chess-glass p-6 md:p-8 rounded-[32px] shadow-2xl">
-                
-                {/* Extraction Complete Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 border-b border-white/10 pb-5 gap-4">
+              <div className="dock-panel relative overflow-hidden">
+                <div className="flex flex-col gap-3 border-b border-[var(--garis)] px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
                   <div>
-                    <h3 className="text-xl md:text-2xl font-bold text-white">Extraction Complete</h3>
-                    <p className="text-zinc-400 text-xs mt-1">Ready to download your requested media.</p>
+                    <p className="font-mono text-[10px] font-semibold tracking-[0.18em] text-[var(--kabut)]">
+                      MANIFEST
+                    </p>
+                    <h2 className="mt-1 text-xl font-bold md:text-2xl">Extraction Complete</h2>
+                    <p className="mt-0.5 text-xs text-[var(--kabut)]">
+                      Pick a format crate below — direct links, no queue.
+                    </p>
                   </div>
-                  <div className="chess-glass-pill px-4 py-1.5 flex items-center gap-2 shrink-0 text-white text-xs font-semibold bg-white/5">
-                     <CheckCircle2 className="w-3.5 h-3.5" /> Ready
-                  </div>
+                  <span className="flex w-fit items-center gap-2 rounded-full border border-[var(--garis-kuat)] bg-white/5 px-4 py-1.5 text-xs font-semibold">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[var(--rambu)]" /> Ready
+                  </span>
                 </div>
 
-                {/* Rich Media Card (Layout: Thumbnail + Categorized links side-by-side) */}
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 items-start">
-                  {/* Thumbnail Component (40% width on desktop) */}
-                  <div className="md:col-span-2 w-full">
+                <div className="manifest-perforation grid grid-cols-1 gap-6 p-5 md:grid-cols-5 md:p-6">
+                  <div className="md:col-span-2">
                     {result.thumbnail ? (
-                      <div className="w-full aspect-[16/10] relative rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 shadow-lg animate-fade-in">
-                        <img 
-                          src={result.thumbnail} 
-                          alt={result.title || "Media Thumbnail"} 
-                          className="w-full h-full object-cover"
+                      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-[8px] border border-[var(--garis)] bg-[var(--air)]">
+                        <img
+                          src={result.thumbnail}
+                          alt={result.title || "Thumbnail media"}
+                          className="h-full w-full object-cover"
                           onError={(e) => {
                             (e.target as HTMLElement).style.display = "none";
                           }}
                         />
                       </div>
                     ) : (
-                      <div className="w-full aspect-[16/10] relative rounded-2xl overflow-hidden bg-zinc-900 border border-white/10 flex items-center justify-center shadow-lg">
-                        <Download className="w-12 h-12 text-zinc-700 animate-pulse" />
+                      <div className="flex aspect-[16/10] w-full items-center justify-center rounded-[8px] border border-[var(--garis)] bg-[var(--air)]">
+                        <Download className="h-12 w-12 text-[#22464a]" />
                       </div>
                     )}
                   </div>
 
-                  {/* Metadata and Link Groups (60% width on desktop) */}
-                  <div className="md:col-span-3 min-w-0 flex flex-col justify-between h-full">
-                    <div>
-                      {/* Title */}
-                      <h4 className="text-base md:text-lg font-bold text-white leading-snug line-clamp-2 mb-2" title={result.title}>
-                        {result.title || "Extracted Media"}
-                      </h4>
-                      
-                      {/* Metadata Labels */}
-                      <div className="flex flex-wrap items-center gap-3 mb-6">
-                        {result.author && (
-                          <span className="text-xs text-zinc-400 font-medium">
-                            by {result.author}
-                          </span>
-                        )}
-                        {result.source && (
-                          <span className="text-xs text-zinc-500 font-semibold uppercase tracking-wider bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                            {result.source}
-                          </span>
-                        )}
-                        {result.duration && (
-                          <span className="text-xs text-zinc-400 font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                            {Math.floor(result.duration / 60)}:{(result.duration % 60).toString().padStart(2, '0')}
-                          </span>
-                        )}
-                      </div>
+                  <div className="flex min-w-0 flex-col md:col-span-3">
+                    <h3
+                      className="text-base leading-snug font-bold md:text-lg"
+                      title={result.title}
+                    >
+                      {result.title || "Extracted Media"}
+                    </h3>
+                    <div className="mt-2 mb-5 flex flex-wrap items-center gap-2">
+                      {result.author && (
+                        <span className="text-xs font-medium text-[var(--kabut)]">
+                          by {result.author}
+                        </span>
+                      )}
+                      {result.source && (
+                        <span className="rounded-[4px] border border-[var(--garis)] bg-white/5 px-2 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-[var(--kabut)] uppercase">
+                          {result.source}
+                        </span>
+                      )}
+                      {result.duration && (
+                        <span className="rounded-[4px] border border-[var(--garis)] bg-white/5 px-2 py-0.5 font-mono text-xs text-[var(--kabut)]">
+                          {Math.floor(result.duration / 60)}:
+                          {(result.duration % 60).toString().padStart(2, "0")}
+                        </span>
+                      )}
                     </div>
 
-                    {/* Intelligently Mapping Categorized Download Buttons */}
-                    <div className="flex flex-col gap-4">
-                      {/* Videos Group */}
+                    <div className="flex flex-col gap-5">
                       {(sortedMp4Videos.length > 0 || sortedWebmVideos.length > 0) && (
                         <div className="flex flex-col gap-3">
-                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Video Downloads</span>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            
-                            {/* MP4 Format Column (Left) */}
+                          <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
+                            VIDEO CRATE
+                          </span>
+                          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                             <div className="flex flex-col gap-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 mb-1">MP4 Format</span>
+                              <span className="font-mono text-[10px] font-bold tracking-wider text-[var(--kabut)]">
+                                MP4
+                              </span>
                               {sortedMp4Videos.length > 0 ? (
-                                <div className="flex flex-col gap-2">
-                                  {sortedMp4Videos.map((item: any, idx: number) => {
-                                    const hasAudio = item.hasAudio !== false && item.audio !== false;
-                                    const isBestWithAudio = bestMp4WithAudio && item === bestMp4WithAudio;
-                                    return (
-                                      <button 
-                                        key={idx}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          const title = result.title || "extracted_media";
-                                          const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                                          const ext = item.ext || "mp4";
-                                          const quality = item.quality || item.label || "";
-                                          const filename = `${cleanTitle}_${quality ? `${quality}_` : ""}${idx + 1}.${ext}`;
-                                          forceDownload(item.url, filename);
-                                        }}
-                                        className="flex items-center justify-between gap-3 bg-white text-black font-bold text-xs py-2.5 px-4 rounded-xl hover:bg-zinc-200 transition-all cursor-pointer active:scale-95 duration-200 shadow-sm w-full"
-                                      >
-                                        <span className="flex items-center gap-2 truncate text-left">
-                                          <Download className="w-3.5 h-3.5 shrink-0" />
-                                          <span className="truncate">{getMediaLabel(item)}</span>
-                                        </span>
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                          {!hasAudio && (
-                                            <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider flex items-center gap-1 font-extrabold select-none">
-                                              🔇 Video Only
-                                            </span>
-                                          )}
-                                          {isBestWithAudio && (
-                                            <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider flex items-center gap-1 font-extrabold select-none">
-                                              🔊 Best with Audio
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                sortedMp4Videos.map((item: any, idx: number) =>
+                                  renderFormatButton(
+                                    item,
+                                    idx,
+                                    "video",
+                                    bestMp4WithAudio ? item === bestMp4WithAudio : false,
+                                  ),
+                                )
                               ) : (
-                                <div className="text-zinc-600 text-xs py-3 px-4 border border-dashed border-white/5 rounded-xl text-center">
-                                  No MP4 formats available
-                                </div>
+                                <p className="rounded-[4px] border border-dashed border-[var(--garis-kuat)] px-4 py-3 text-center text-xs text-[var(--kabut)]">
+                                  No MP4 formats
+                                </p>
                               )}
                             </div>
-
-                            {/* WEBM Format Column (Right) */}
                             <div className="flex flex-col gap-2">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-600 mb-1">WEBM Format</span>
+                              <span className="font-mono text-[10px] font-bold tracking-wider text-[var(--kabut)]">
+                                WEBM
+                              </span>
                               {sortedWebmVideos.length > 0 ? (
-                                <div className="flex flex-col gap-2">
-                                  {sortedWebmVideos.map((item: any, idx: number) => {
-                                    const hasAudio = item.hasAudio !== false && item.audio !== false;
-                                    const isBestWithAudio = bestWebmWithAudio && item === bestWebmWithAudio;
-                                    return (
-                                      <button 
-                                        key={idx}
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          const title = result.title || "extracted_media";
-                                          const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                                          const ext = item.ext || "webm";
-                                          const quality = item.quality || item.label || "";
-                                          const filename = `${cleanTitle}_${quality ? `${quality}_` : ""}${idx + 1}.${ext}`;
-                                          forceDownload(item.url, filename);
-                                        }}
-                                        className="flex items-center justify-between gap-3 bg-white text-black font-bold text-xs py-2.5 px-4 rounded-xl hover:bg-zinc-200 transition-all cursor-pointer active:scale-95 duration-200 shadow-sm w-full"
-                                      >
-                                        <span className="flex items-center gap-2 truncate text-left">
-                                          <Download className="w-3.5 h-3.5 shrink-0" />
-                                          <span className="truncate">{getMediaLabel(item)}</span>
-                                        </span>
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                          {!hasAudio && (
-                                            <span className="bg-red-500/10 text-red-600 border border-red-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider flex items-center gap-1 font-extrabold select-none">
-                                              🔇 Video Only
-                                            </span>
-                                          )}
-                                          {isBestWithAudio && (
-                                            <span className="bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider flex items-center gap-1 font-extrabold select-none">
-                                              🔊 Best with Audio
-                                            </span>
-                                          )}
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
+                                sortedWebmVideos.map((item: any, idx: number) =>
+                                  renderFormatButton(
+                                    item,
+                                    idx,
+                                    "video",
+                                    bestWebmWithAudio ? item === bestWebmWithAudio : false,
+                                  ),
+                                )
                               ) : (
-                                <div className="text-zinc-600 text-xs py-3 px-4 border border-dashed border-white/5 rounded-xl text-center">
-                                  No WEBM formats available
-                                </div>
+                                <p className="rounded-[4px] border border-dashed border-[var(--garis-kuat)] px-4 py-3 text-center text-xs text-[var(--kabut)]">
+                                  No WEBM formats
+                                </p>
                               )}
                             </div>
-
                           </div>
                         </div>
                       )}
 
-                      {/* Audios Group */}
                       {sortedAudios.length > 0 && (
-                        <div className="flex flex-col gap-2 mt-4">
-                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Audio Tracks</span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            {sortedAudios.map((item: any, idx: number) => (
-                              <button 
-                                key={idx}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  const title = result.title || "extracted_media";
-                                  const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                                  const ext = item.ext || "mp3";
-                                  const quality = item.quality || item.label || "";
-                                  const filename = `${cleanTitle}_audio_${quality ? `${quality}_` : ""}${idx + 1}.${ext}`;
-                                  forceDownload(item.url, filename);
-                                }}
-                                className="flex items-center justify-center gap-2 bg-transparent text-white border border-white/10 font-bold text-xs py-2.5 px-4 rounded-xl hover:bg-white/5 transition-all cursor-pointer active:scale-95 duration-200 w-full"
-                              >
-                                <Download className="w-3.5 h-3.5 shrink-0" />
-                                <span className="truncate">{getMediaLabel(item)}</span>
-                              </button>
-                            ))}
+                        <div className="flex flex-col gap-2">
+                          <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
+                            AUDIO CRATE
+                          </span>
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {sortedAudios.map((item: any, idx: number) =>
+                              renderFormatButton(item, idx, "audio", false),
+                            )}
                           </div>
                         </div>
                       )}
 
-                      {/* Fallback links group */}
                       {fallbackLinks.length > 0 && (
                         <div className="flex flex-col gap-2">
-                          <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Links</span>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <span className="font-mono text-[10px] font-semibold tracking-[0.14em] text-[var(--kabut)]">
+                            OTHER LINKS
+                          </span>
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             {fallbackLinks.map((link: any, idx: number) => (
-                              <button 
+                              <button
                                 key={idx}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  const title = result.title || "extracted_media";
-                                  const cleanTitle = title.replace(/[^a-zA-Z0-9]/g, "_").toLowerCase();
-                                  const urlObj = new URL(link.url);
-                                  const pathname = urlObj.pathname;
-                                  const match = pathname.match(/\.([a-zA-Z0-9]+)$/);
-                                  const ext = match ? match[1] : "mp4";
-                                  const filename = `${cleanTitle}_link_${idx + 1}.${ext}`;
-                                  forceDownload(link.url, filename);
+                                  downloadMedia(null, idx, "link", link.url);
                                 }}
-                                className="flex items-center justify-center gap-2 bg-white text-black font-bold text-xs py-2.5 px-4 rounded-xl hover:bg-zinc-200 transition-all cursor-pointer active:scale-95 duration-200 shadow-sm w-full"
+                                className="flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] bg-[var(--busa)] px-4 py-2.5 font-mono text-xs font-semibold text-[#0c1f22] transition-all hover:bg-white active:scale-[0.97]"
                               >
-                                <Download className="w-3.5 h-3.5 shrink-0" />
+                                <Download className="h-3.5 w-3.5 shrink-0" />
                                 <span className="truncate">{link.label}</span>
                               </button>
                             ))}
@@ -918,41 +812,24 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* Payload Details */}
-                <details className="group border border-white/5 rounded-2xl overflow-hidden bg-black/30">
-                  <summary className="bg-white/[0.02] text-zinc-300 text-xs font-semibold p-4 hover:bg-white/[0.04] cursor-pointer transition-colors select-none outline-none flex items-center justify-between">
-                    <span>View Technical Payload</span>
-                    <span className="text-zinc-500 group-open:hidden">Expand</span>
-                    <span className="text-zinc-500 hidden group-open:block">Collapse</span>
+                <details className="group mx-5 mb-5 overflow-hidden rounded-[8px] border border-[var(--garis)] bg-black/20 md:mx-6 md:mb-6">
+                  <summary className="cursor-pointer p-4 text-xs font-semibold text-[var(--kabut)] transition-colors select-none hover:bg-white/[0.03] hover:text-[var(--busa)]">
+                    View technical payload
                   </summary>
-                  <div className="relative border-t border-white/5 overflow-hidden">
-                    <div 
-                      className="p-4 bg-black/60 text-[11px] font-mono text-zinc-500/40 whitespace-pre-wrap overflow-x-auto max-h-72 overflow-y-auto select-none pointer-events-none filter blur-[1.5px]"
-                      style={{ 
-                        maskImage: 'linear-gradient(to bottom, black 20%, transparent 100%)',
-                        WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 100%)',
-                      }}
-                    >
-                      <pre>{JSON.stringify(result, null, 2)}</pre>
-                    </div>
-                    
-                    {/* Centered Overlay CTA Card */}
-                    <div className="absolute inset-0 flex items-center justify-center p-4 bg-black/10 backdrop-blur-[3px]">
-                      <div className="chess-glass max-w-sm w-full rounded-2xl p-5 md:p-6 flex flex-col items-center text-center shadow-[0_12px_40px_rgba(0,0,0,0.8)] border border-white/10 animate-fade-in">
-                        <p className="text-xs text-zinc-300 leading-relaxed mb-4 font-medium">
-                          Detailed payload schemas, stream routing, and extraction architecture are documented in our Developer Docs.
-                        </p>
-                        <a 
-                          href="/docs"
-                          className="bg-white hover:bg-zinc-200 text-black font-bold text-xs px-5 py-2.5 rounded-full transition-all duration-200 cursor-pointer active:scale-95 shadow-lg flex items-center justify-center gap-1.5"
-                        >
-                          Read Documentation
-                        </a>
-                      </div>
-                    </div>
+                  <div className="border-t border-[var(--garis)] p-4">
+                    <p className="mb-3 text-xs leading-relaxed text-[var(--kabut)]">
+                      Payload schema, stream routing, and the extraction
+                      architecture are documented in the{" "}
+                      <a href="/docs/" className="font-semibold text-[var(--busa)] underline underline-offset-2">
+                        Docs
+                      </a>
+                      .
+                    </p>
+                    <pre className="max-h-72 overflow-auto font-mono text-[11px] whitespace-pre-wrap text-[var(--kabut)]">
+                      {JSON.stringify(result, null, 2)}
+                    </pre>
                   </div>
                 </details>
-
               </div>
             </motion.section>
           )}
@@ -960,86 +837,101 @@ export default function Home() {
 
       </main>
 
-      {/* Footer (Minimalist Copyright + Trigger) */}
-      <footer className="w-full border-t border-white/10 py-6 bg-[#080808] px-6 mt-auto">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+      {/* ── Footer (asli repo) ── */}
+      <footer className="mt-auto w-full border-t border-[var(--garis)] bg-[#0a1a1d] px-4 py-6 md:px-6">
+        <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-4 text-xs text-[var(--kabut)] sm:flex-row">
           <p>DezDownload © {new Date().getFullYear()} • Designed by DezReacher</p>
-          <button 
-            onClick={() => setIsDrawerOpen(true)}
-            className="hover:text-white transition-colors cursor-pointer font-medium"
-          >
-            Legal & Terms
-          </button>
+          <div className="flex items-center gap-5">
+            <a href="/docs/" className="font-medium transition-colors hover:text-[var(--busa)]">
+              Docs
+            </a>
+            <button
+              onClick={() => setIsDrawerOpen(true)}
+              className="cursor-pointer font-medium transition-colors hover:text-[var(--busa)]"
+            >
+              Legal &amp; Terms
+            </button>
+          </div>
         </div>
       </footer>
 
-      {/* Off-Canvas Drawer (Slide-over component) */}
+      {/* ── Drawer Legal & Terms ── */}
       <AnimatePresence>
         {isDrawerOpen && (
           <>
-            {/* Backdrop Overlay */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsDrawerOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 cursor-pointer"
+              className="fixed inset-0 z-40 cursor-pointer bg-black/60 backdrop-blur-sm"
             />
-            {/* Drawer Panel */}
-            <motion.div 
+            <motion.div
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-zinc-950 border-l border-white/10 shadow-2xl flex flex-col h-full"
+              className="fixed inset-y-0 right-0 z-50 flex h-full w-full max-w-md flex-col border-l border-[var(--garis)] bg-[#0e2427] shadow-2xl"
+              role="dialog"
+              aria-label="Legal and Terms"
             >
-              {/* Header */}
-              <div className="sticky top-0 z-50 bg-[#0a0a0a] p-6 md:p-8 border-b border-white/10 flex items-center justify-between shrink-0">
-                <h3 className="text-lg font-bold text-white">Legal & Terms</h3>
-                <button 
+              <div className="sticky top-0 z-50 flex shrink-0 items-center justify-between border-b border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
+                <h3 className="text-lg font-bold">Legal &amp; Terms</h3>
+                <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-[8px] p-2 text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+                  aria-label="Close legal panel"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Body Content (Scrollable) */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 text-xs text-zinc-400 leading-relaxed">
+              <div className="flex-1 space-y-6 overflow-y-auto p-6 text-xs leading-relaxed text-[var(--kabut)] md:p-8">
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">About DezDownload</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">About DezDownload</h4>
                   <p>
-                    DezDownload is a high-performance web utility built on a fast, modern Next.js client routing architecture. Created by developer DezReacher, it provides structured extraction for public media sources with latency optimization and fail-safe redundancy.
+                    DezDownload is a web utility built on Next.js and the
+                    Cobalt API. It was created by dezzorigin to extract public
+                    media from many platforms, with low latency.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">Terms of Service</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Terms of Service</h4>
                   <p>
-                    DezDownload is an educational utility tool designed for extracting publicly available media. By using this service, you agree to access content only for personal, non-commercial use. Users assume full legal responsibility for the media they access and download.
+                    DezDownload is an educational utility for extracting
+                    publicly available media. By using this service, you agree
+                    to access content only for personal, non-commercial use.
+                    Users assume full legal responsibility for the media they
+                    access and download.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">Privacy Policy</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">Privacy</h4>
                   <p>
-                    We value user privacy. DezDownload functions solely as a client-side routing mechanism. We do not store, host, collect, or cache any user-extracted media files or personal data on our servers.
+                    DezDownload acts only as a relay. We do not store, host,
+                    collect, or cache extracted media files or users&apos;
+                    personal data on our servers.
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="font-bold text-white text-sm mb-2">DMCA & Copyright Policy</h4>
+                  <h4 className="mb-2 text-sm font-bold text-[var(--busa)]">DMCA &amp; Copyright</h4>
                   <p>
-                    We strictly prohibit the use of this tool for copyright infringement. DezDownload does not host or store copyrighted material on its servers. If you are a copyright owner and wish to restrict extraction from a specific source platform, please contact the originating platform directly.
+                    We strictly prohibit using this tool for copyright
+                    infringement. DezDownload does not host or store
+                    copyrighted material on its servers. Copyright owners who
+                    wish to restrict extraction from a particular source
+                    platform should contact the originating platform directly.
                   </p>
                 </div>
               </div>
 
-              {/* Close Footer Trigger */}
-              <div className="p-6 md:p-8 border-t border-white/10 bg-[#0a0a0a] shrink-0">
-                <button 
+              <div className="shrink-0 border-t border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
+                <button
                   onClick={() => setIsDrawerOpen(false)}
-                  className="w-full bg-white text-black font-bold text-xs py-3 rounded-full hover:bg-zinc-200 transition-colors cursor-pointer"
+                  className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                 >
                   Close Panel
                 </button>
@@ -1049,50 +941,53 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Platforms Side Drawer (Slides from Left) */}
+      {/* ── Drawer Platform ── */}
       <AnimatePresence>
         {isPlatformsDrawerOpen && (
           <>
-            {/* Backdrop Overlay */}
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsPlatformsDrawerOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 cursor-pointer"
+              className="fixed inset-0 z-40 cursor-pointer bg-black/60 backdrop-blur-sm"
             />
-            {/* Drawer Panel */}
-            <motion.div 
+            <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 z-50 w-full max-w-md bg-zinc-950 border-r border-white/10 shadow-2xl flex flex-col h-full"
+              className="fixed inset-y-0 left-0 z-50 flex h-full w-full max-w-md flex-col border-r border-[var(--garis)] bg-[#0e2427] shadow-2xl"
+              role="dialog"
+              aria-label="Supported platforms"
             >
-              {/* Header */}
-              <div className="sticky top-0 z-50 bg-[#0a0a0a] p-6 md:p-8 border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="sticky top-0 z-50 flex shrink-0 items-center justify-between border-b border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
                 <div>
-                  <h3 className="text-lg font-bold text-white">Universal Extraction Engine</h3>
-                  <p className="text-zinc-500 text-[10px] uppercase tracking-wider font-semibold mt-1">Status: Operational</p>
+                  <h3 className="text-lg font-bold">Universal Extraction Engine</h3>
+                  <p className="mt-1 font-mono text-[10px] font-semibold tracking-wider text-[var(--kabut)] uppercase">
+                    Status: Operational · 54 platforms
+                  </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsPlatformsDrawerOpen(false)}
-                  className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                  className="cursor-pointer rounded-[8px] p-2 text-[var(--kabut)] transition-colors hover:bg-white/5 hover:text-[var(--busa)]"
+                  aria-label="Close platforms list"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {/* Content Area (Scrollable) */}
-              <div className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col gap-6">
-                {/* Explanation */}
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 shrink-0">
-                  <p className="text-xs text-zinc-400 leading-relaxed">
-                    If it has a URL, we can extract it. Our dynamic routing architecture automatically identifies the host and processes the media instantly.
+              <div className="flex flex-1 flex-col gap-6 overflow-y-auto p-6 md:p-8">
+                <div className="shrink-0 rounded-[12px] border border-[var(--garis)] bg-white/[0.02] p-4">
+                  <p className="text-xs leading-relaxed text-[var(--kabut)]">
+                    If it has a URL, we can probably extract it. Click a
+                    platform to fill the link box with its starting address.
+                    Being listed does not guarantee every link from that
+                    platform will succeed — the worker answers honestly when
+                    one refuses.
                   </p>
                 </div>
 
-                {/* Grid Container */}
                 <div className="grid grid-cols-4 gap-2 pb-6">
                   {platforms.map((plat) => {
                     const IconComponent = plat.icon;
@@ -1100,12 +995,12 @@ export default function Home() {
                       <button
                         key={plat.name}
                         onClick={() => handlePlatformClick(plat.name)}
-                        className="flex flex-col items-center justify-center p-3 rounded-xl border border-white/5 bg-white/[0.01] hover:bg-white/5 hover:border-white/20 active:scale-95 transition-all duration-200 cursor-pointer group"
+                        className="group flex cursor-pointer flex-col items-center justify-center rounded-[8px] border border-[var(--garis)] bg-white/[0.01] p-3 transition-all duration-150 hover:border-[var(--garis-kuat)] hover:bg-white/5 active:scale-95"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-zinc-900 flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-colors">
-                          <IconComponent className="w-4 h-4 text-zinc-400 group-hover:text-white transition-colors" />
-                        </div>
-                        <span className="text-[10px] text-zinc-500 font-medium tracking-tight mt-2 text-center w-full truncate group-hover:text-zinc-300 transition-colors">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-[8px] border border-[var(--garis)] bg-[var(--dermaga)] transition-colors group-hover:border-[var(--garis-kuat)]">
+                          <IconComponent className="h-4 w-4 text-[var(--kabut)] transition-colors group-hover:text-[var(--busa)]" />
+                        </span>
+                        <span className="mt-2 w-full truncate text-center text-[10px] font-medium tracking-tight text-[var(--kabut)] transition-colors group-hover:text-[var(--busa)]">
                           {plat.name}
                         </span>
                       </button>
@@ -1114,13 +1009,12 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Close Button (Sticky at bottom) */}
-              <div className="p-6 md:p-8 border-t border-white/10 bg-[#0a0a0a] shrink-0">
-                <button 
+              <div className="shrink-0 border-t border-[var(--garis)] bg-[#0e2427] p-6 md:p-8">
+                <button
                   onClick={() => setIsPlatformsDrawerOpen(false)}
-                  className="w-full bg-white text-black font-bold text-xs py-3 rounded-full hover:bg-zinc-200 transition-colors cursor-pointer"
+                  className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                 >
-                  Close Engine
+                  Close
                 </button>
               </div>
             </motion.div>
@@ -1128,33 +1022,35 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Install App Popup (Top Notification) */}
+      {/* ── Popup Install App ── */}
       <AnimatePresence>
         {showInstallPopup && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-6 left-0 right-0 z-[100] flex justify-center px-4"
+            className="fixed top-6 right-0 left-0 z-[100] flex justify-center px-4"
           >
-            <div className="chess-glass text-white shadow-[0_12px_40px_rgba(0,0,0,0.5)] rounded-2xl p-5 max-w-sm w-full flex items-start gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0">
-                <Download className="w-5 h-5 text-black" />
-              </div>
+            <div className="dock-panel flex w-full max-w-sm items-start gap-4 p-5 shadow-2xl">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] bg-[var(--busa)]">
+                <Download className="h-5 w-5 text-[#0c1f22]" />
+              </span>
               <div className="flex-1">
                 <h4 className="text-sm font-bold">Install DezDownload</h4>
-                <p className="text-xs text-zinc-400 mt-1">Add to Home Screen for instant access.</p>
-                <div className="flex items-center gap-3 mt-4">
-                  <button 
+                <p className="mt-1 text-xs text-[var(--kabut)]">
+                  Add it to your home screen for instant access.
+                </p>
+                <div className="mt-4 flex items-center gap-3">
+                  <button
                     onClick={handleInstallClick}
-                    className="bg-white hover:bg-zinc-200 text-black text-xs font-bold px-4 py-2 rounded-full transition-colors cursor-pointer"
+                    className="cursor-pointer rounded-full bg-[var(--busa)] px-4 py-2 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
                   >
                     Install App
                   </button>
-                  <button 
+                  <button
                     onClick={() => setShowInstallPopup(false)}
-                    className="bg-transparent hover:bg-white/5 border border-white/10 text-white text-xs font-semibold px-4 py-2 rounded-full transition-colors cursor-pointer"
+                    className="cursor-pointer rounded-full border border-[var(--garis-kuat)] px-4 py-2 text-xs font-semibold transition-colors hover:bg-white/5"
                   >
                     Later
                   </button>
@@ -1165,190 +1061,86 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Install Instructions Modal */}
+      {/* ── Modal cara install ── */}
       <AnimatePresence>
         {showInstallInstructions && (
           <>
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowInstallInstructions(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 cursor-pointer"
+              className="fixed inset-0 z-50 cursor-pointer bg-black/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[92%] max-w-sm chess-glass p-6 rounded-3xl shadow-2xl border border-white/10 text-center animate-fade-in"
+              className="dock-panel fixed top-1/2 left-1/2 z-50 w-[92%] max-w-sm -translate-x-1/2 -translate-y-1/2 p-6 text-center shadow-2xl"
+              role="dialog"
+              aria-label="How to install"
             >
-              <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-lg font-bold text-white mb-2 font-sans tracking-wide">How to Install</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+              <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[var(--garis-kuat)] bg-white/5">
+                <ArrowDownToLine className="h-5 w-5" />
+              </span>
+              <h3 className="text-lg font-bold tracking-wide">How to Install</h3>
+              <p className="mt-2 mb-6 text-xs leading-relaxed text-[var(--kabut)]">
                 For the best experience, add DezDownload to your home screen:
-                <br /><br />
-                <span className="text-white font-semibold">Safari (iOS):</span> Tap the <span className="font-bold text-white underline">Share</span> button, scroll down, and select <span className="text-white font-semibold">"Add to Home Screen"</span>.
-                <br /><br />
-                <span className="text-white font-semibold">Chrome / Firefox:</span> Click the install button in the address bar or menu.
+                <br />
+                <br />
+                <span className="font-semibold text-[var(--busa)]">Safari (iOS):</span>{" "}
+                Tap the{" "}
+                <span className="font-bold text-[var(--busa)] underline">Share</span> button,
+                scroll down, then choose{" "}
+                <span className="font-semibold text-[var(--busa)]">“Add to Home Screen”</span>.
+                <br />
+                <br />
+                <span className="font-semibold text-[var(--busa)]">Chrome / Firefox:</span>{" "}
+                Click the install button in the address bar or menu.
               </p>
-              <button 
+              <button
                 onClick={() => setShowInstallInstructions(false)}
-                className="w-full bg-white text-black font-bold text-xs py-3 rounded-full hover:bg-zinc-200 transition-colors cursor-pointer"
+                className="w-full cursor-pointer rounded-full bg-[var(--busa)] py-3 text-xs font-bold text-[#0c1f22] transition-colors hover:bg-white"
               >
-                Got It
+                Got it
               </button>
             </motion.div>
           </>
         )}
       </AnimatePresence>
 
-      {/* Toast Notification */}
+      {/* ── Toast ── */}
       <AnimatePresence>
         {showToast && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.9 }}
-            className={`fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-zinc-900/95 border ${
-              toastType === "success" 
-                ? "border-emerald-500/30 shadow-[0_20px_50px_rgba(16,185,129,0.15)]" 
-                : toastType === "error"
-                ? "border-red-500/30 shadow-[0_20px_50px_rgba(239,68,68,0.15)]"
-                : toastType === "warning"
-                ? "border-amber-500/40 shadow-[0_20px_50px_rgba(217,119,6,0.25)]"
-                : "border-blue-500/30 shadow-[0_20px_50px_rgba(59,130,246,0.15)]"
-            } text-white px-5 py-3.5 rounded-2xl backdrop-blur-xl max-w-sm`}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 24 }}
+            transition={{ duration: 0.2 }}
+            className="fixed bottom-6 left-1/2 z-[100] w-[92%] max-w-md -translate-x-1/2"
+            role="status"
           >
-            <div className={`w-5 h-5 rounded-full ${
-              toastType === "success" 
-                ? "bg-emerald-500/10" 
-                : toastType === "error"
-                ? "bg-red-500/10"
-                : toastType === "warning"
-                ? "bg-amber-500/10"
-                : "bg-blue-500/10"
-            } flex items-center justify-center shrink-0`}
+            <div
+              className={`flex items-start gap-2 rounded-[8px] border px-4 py-3 text-sm font-medium shadow-2xl ${
+                toastType === "success"
+                  ? "border-[var(--garis-kuat)] bg-[var(--dermaga)] text-[var(--busa)]"
+                  : toastType === "error"
+                    ? "border-[#7a2e12] bg-[#2a1712] text-[#ffb59d]"
+                    : toastType === "warning"
+                      ? "border-[#7a5b00] bg-[#2a230c] text-[#ffe9a8]"
+                      : "border-[var(--garis-kuat)] bg-[var(--dermaga)] text-[var(--busa)]"
+              }`}
             >
               {toastType === "success" ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              ) : toastType === "error" ? (
-                <AlertCircle className="w-4 h-4 text-red-400" />
-              ) : toastType === "warning" ? (
-                <Wrench className="w-4 h-4 text-amber-400" />
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[var(--rambu)]" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-blue-400" />
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               )}
+              <span>{toastMessage}</span>
             </div>
-            <p className="text-xs font-semibold tracking-wide text-zinc-100">{toastMessage}</p>
-            <button 
-              onClick={() => setShowToast(false)}
-              className="text-zinc-500 hover:text-white transition-colors ml-2"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
           </motion.div>
         )}
       </AnimatePresence>
-
     </div>
-
-      {/* ── LAYER 1: Maintenance Modal ─────────────────────────────────────── */}
-      <AnimatePresence>
-        {showMaintenanceModal && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] cursor-pointer"
-              onClick={() => setShowMaintenanceModal(false)}
-            />
-
-            {/* Modal Panel */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 6 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[210] w-[92%] max-w-md"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="maintenance-modal-title"
-            >
-              <div className="bg-[#0a0a0a] border border-white/[0.08] rounded-2xl shadow-[0_24px_60px_rgba(0,0,0,0.7)]">
-
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 pt-5 pb-4">
-                  <div className="flex items-center gap-2.5">
-                    <Server className="w-[15px] h-[15px] text-zinc-500 shrink-0" strokeWidth={1.5} />
-                    <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-widest select-none">
-                      Service Notice
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowMaintenanceModal(false)}
-                    className="text-zinc-600 hover:text-zinc-300 transition-colors cursor-pointer p-1 rounded-md hover:bg-white/5"
-                    aria-label="Close"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Hairline divider */}
-                <div className="h-px bg-white/[0.06] mx-6" />
-
-                {/* Body */}
-                <div className="px-6 py-5">
-                  <h2
-                    id="maintenance-modal-title"
-                    className="text-[17px] font-semibold text-white tracking-tight leading-snug mb-2.5"
-                  >
-                    Scheduled maintenance
-                  </h2>
-
-                  <p className="text-[13px] text-zinc-400 leading-[1.75] mb-5">
-                    Our extraction engine is undergoing a core infrastructure migration to support higher throughput and improved reliability. We apologize for the inconvenience — the service will be restored shortly.
-                  </p>
-
-                  {/* Minimal status indicator */}
-                  <div className="flex items-center gap-2 py-3 border-t border-white/[0.06] mb-5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                    <span className="text-[11px] text-zinc-500 font-medium tabular-nums">
-                      Extraction API&nbsp;&nbsp;—&nbsp;&nbsp;degraded
-                    </span>
-                  </div>
-
-                  {/* CTA Buttons */}
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <a
-                      href="https://github.com/nblauliadka"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-1.5 bg-white hover:bg-zinc-100 text-black font-semibold text-[13px] py-2.5 px-4 rounded-lg transition-colors duration-150 active:scale-[0.98] cursor-pointer"
-                    >
-                      <Github className="w-3.5 h-3.5" />
-                      View my projects
-                      <ExternalLink className="w-3 h-3 opacity-40" />
-                    </a>
-                    <button
-                      onClick={() => setShowMaintenanceModal(false)}
-                      className="flex-1 bg-transparent hover:bg-white/[0.04] border border-white/10 text-zinc-400 hover:text-zinc-200 font-medium text-[13px] py-2.5 px-4 rounded-lg transition-colors duration-150 cursor-pointer"
-                    >
-                      Dismiss
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-    </>
   );
 }

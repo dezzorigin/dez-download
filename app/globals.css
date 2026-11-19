@@ -1,76 +1,86 @@
 @import "tailwindcss";
 
+/* Token dermaga — lihat docs/DESIGN.md. Tanpa gradient di mana pun. */
+:root {
+  --air: #0c1f22;
+  --dermaga: #122e31;
+  --busa: #e9f1ec;
+  --kabut: #93a8a4;
+  --pelampung: #e4572e;
+  --rambu: #f2c230;
+  --garis: rgba(233, 241, 236, 0.1);
+  --garis-kuat: rgba(233, 241, 236, 0.22);
+}
+
+@theme inline {
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
 @layer base {
-  body {
-    background-color: #050505;
-    background-image: 
-      radial-gradient(at 50% 0%, rgba(255, 255, 255, 0.03) 0px, transparent 50%),
-      linear-gradient(rgba(255, 255, 255, 0.005) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.005) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
-    background-attachment: fixed;
-    color: #fafafa;
+  html {
+    scroll-behavior: smooth;
   }
 
-  /* Custom scrollbar for premium dark appearance */
+  body {
+    background-color: var(--air);
+    color: var(--busa);
+    font-family: var(--font-display), system-ui, sans-serif;
+  }
+
+  ::selection {
+    background: var(--pelampung);
+    color: var(--busa);
+  }
+
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #050505;
+    background: var(--air);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #27272a;
-    border-radius: 9999px;
+    background: #22464a;
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f46;
+    background: #2e5a5f;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--rambu);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer utilities {
-  /* Subtle glassmorphic utilities */
-  .chess-glass {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+  /* Panel dermaga: permukaan kartu, tanpa bayangan besar. */
+  .dock-panel {
+    background: var(--dermaga);
+    border: 1px solid var(--garis);
+    border-radius: 12px;
   }
 
-  .chess-glass-pill {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 9999px;
-  }
-
-  .chess-glow-hover:hover {
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.15);
-  }
-
-  .chess-input-inner {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  /* Infinite scrolling marquee */
-  @keyframes marquee {
-    0% {
-      transform: translateX(0%);
-    }
-    100% {
-      transform: translateX(-50%);
-    }
-  }
-
-  .animate-marquee {
-    display: flex;
-    width: max-content;
-    animation: marquee 35s linear infinite;
+  /* Tepi perforasi manifest: garis putus-putus pemisah peti. */
+  .manifest-perforation {
+    border-top: 1px dashed var(--garis-kuat);
   }
 }
