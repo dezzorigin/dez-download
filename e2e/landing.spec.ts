@@ -51,9 +51,13 @@ test("tool page: title + hero + form + footer (produk asli repo)", async ({ page
   await expect(page.getByText("54 PLATFORMS · POWERED BY COBALT")).toBeVisible();
   await expect(page.getByLabel("Media link")).toBeVisible();
   await expect(page.getByRole("button", { name: "Extract Media" })).toBeVisible();
-  // header pil: Platforms, Legal & Terms, Install App, GitHub
-  await expect(page.getByRole("button", { name: "Platforms" }).first()).toBeVisible();
-  await expect(page.getByRole("button", { name: "Legal & Terms" }).first()).toBeVisible();
+  // header pil: nav desktop hanya terlihat >= md; mobile pakai hamburger
+  if (test.info().project.name === "desktop") {
+    await expect(page.locator('nav[aria-label="Main navigation"]').getByRole("button", { name: "Platforms" })).toBeVisible();
+    await expect(page.locator('nav[aria-label="Main navigation"]').getByRole("button", { name: "Legal & Terms" })).toBeVisible();
+  } else {
+    await expect(page.getByRole("button", { name: "Toggle menu" })).toBeVisible();
+  }
   await expect(page.getByText("Designed by DezReacher")).toBeVisible();
   // tag OG ada di HTML hasil build
   await expect(page.locator('meta[property="og:title"]')).toHaveCount(1);
@@ -75,7 +79,8 @@ test("ekstraksi (mock API): manifest hasil tampil dengan label peti", async ({ p
   const results = page.locator('section[aria-label="Extraction results"]');
   await expect(results.getByRole("heading", { name: "Extraction Complete" })).toBeVisible();
   await expect(results.getByText("MANIFEST")).toBeVisible();
-  await expect(results.getByText("Example video")).toBeVisible();
+  // judul via heading (getByText mentok 2 elemen: h3 + <pre> payload JSON)
+  await expect(results.getByRole("heading", { name: "Example video" })).toBeVisible();
   await expect(results.getByText("BEST WITH AUDIO")).toBeVisible();
   await expect(results.getByRole("button", { name: /MP4 · 1080p \(FHD\)/ })).toBeVisible();
   await expect(results.getByText("VIDEO ONLY")).toBeVisible();
@@ -99,13 +104,20 @@ test("ekstraksi gagal (mock API): pesan error jujur tampil", async ({ page }) =>
   await page.goto("/");
   await page.getByLabel("Media link").fill("https://www.tiktok.com/@contoh/video/123");
   await page.getByRole("button", { name: "Extract Media" }).click();
-  await expect(page.getByRole("alert")).toContainText("Content not found or link invalid");
+  // filter hasText: Next.js menyisipkan #__next-route-announcer__ (role=alert kosong)
+  await expect(page.getByRole("alert").filter({ hasText: "Content not found or link invalid" })).toContainText("Content not found or link invalid");
   await expect(page.getByRole("heading", { name: "Extraction Complete" })).toHaveCount(0);
 });
 
 test("drawer platform: klik TikTok mengisi kolom tautan", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "Platforms" }).first().click();
+  // desktop: tombol nav; mobile: nav desktop hidden -> buka hamburger dulu
+  if (test.info().project.name === "desktop") {
+    await page.locator('nav[aria-label="Main navigation"]').getByRole("button", { name: "Platforms" }).click();
+  } else {
+    await page.getByRole("button", { name: "Toggle menu" }).click();
+    await page.locator('nav[aria-label="Mobile menu"]').getByRole("button", { name: "Platforms" }).click();
+  }
   await expect(page.getByRole("dialog", { name: "Supported platforms" })).toBeVisible();
   await page.getByRole("button", { name: "TikTok" }).click();
   await expect(page.getByLabel("Media link")).toHaveValue(/tiktok\.com/);

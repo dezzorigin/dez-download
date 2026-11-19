@@ -46,7 +46,9 @@ WebKit tidak ter-install di CI). `webServer` menjalankan
    VIDEO CRATE, AUDIO CRATE).
 3. **Ekstraksi gagal (mock API)** — fixture `Status: false`; pesan error
    tampil di `role="alert"`; tidak ada manifest.
-4. **Drawer platform** — klik TikTok mengisi kolom tautan.
+4. **Drawer platform** — klik TikTok mengisi kolom tautan (desktop:
+   tombol nav; mobile: buka hamburger dulu, nav desktop hidden di bawah
+   breakpoint md).
 5. **API worker 400** — `/api/download` dan `/api/proxy` tanpa `url`
    menjawab 400 (tanpa memanggil Cobalt).
 6. **Mobile 390px** — tanpa scroll horizontal; tombol Extract Media terlihat.
