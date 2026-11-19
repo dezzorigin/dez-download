@@ -14,7 +14,7 @@ name: CI
 #                    (scripts/check-static.py; og-image diregenerasi dulu).
 #   playwright-e2e — landing + ekstraksi mock + drawer + API 400 + mobile.
 #                    HANYA di CI; Chromium lokal tidak bisa start di VM dev.
-#                    Playwright diinstal --no-save (tidak ada di lock).
+#                    Playwright diinstal on-demand via npx (tidak ada di lock).
 #   smoke          — marker di out/ + sajikan out/ + worker lalu curl:
 #                    landing 200 + marker, /api/download & /api/proxy
 #                    tanpa url -> 400, og-image 200 image/*, 404.
@@ -118,11 +118,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright (dev-only, tidak ada di lock)
-        run: npm install --no-save @playwright/test@1.49.0
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright browsers (on-demand via npx, tidak ada di lock)
+        run: npx --yes @playwright/test@1.49.0 install --with-deps chromium
 
       - name: E2E landing + ekstraksi mock (desktop + Pixel 7)
         run: npm run e2e

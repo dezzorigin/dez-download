@@ -25,5 +25,12 @@
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    // E2E Playwright bukan dependensi repo (tidak ada di package-lock.json)
+    // — @playwright/test diinstal on-demand di CI via npx, jadi file-file
+    // ini tidak ikut typecheck; Playwright mentranspile-nya sendiri.
+    "e2e",
+    "playwright.config.ts"
+  ]
 }
