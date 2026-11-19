@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arsitektur DezDownload</title>
+<style>
+  :root {
+    --air: #0c1f22;
+    --dermaga: #122e31;
+    --busa: #e9f1ec;
+    --kabut: #93a8a4;
+    --pelampung: #e4572e;
+    --rambu: #f2c230;
+    --garis: rgba(233, 241, 236, 0.22);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--air);
+    color: var(--busa);
+    font-family: "Space Grotesk", "Avenir Next", system-ui, sans-serif;
+    padding: 40px 24px;
+  }
+  main { max-width: 960px; margin: 0 auto; }
+  .kicker {
+    font-family: ui-monospace, "IBM Plex Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    color: var(--rambu);
+    margin: 0 0 12px;
+  }
+  h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  p.lede { color: var(--kabut); max-width: 62ch; line-height: 1.6; margin: 0 0 32px; }
+  figure {
+    margin: 0;
+    border: 1px solid var(--garis);
+    border-radius: 12px;
+    background: var(--dermaga);
+    padding: 24px;
+    overflow-x: auto;
+  }
+  figcaption {
+    font-family: ui-monospace, "IBM Plex Mono", monospace;
+    font-size: 12px;
+    color: var(--kabut);
+    margin-top: 16px;
+  }
+  svg text { font-family: "Space Grotesk", system-ui, sans-serif; }
+  svg .mono { font-family: ui-monospace, "IBM Plex Mono", monospace; }
+  .notes { margin-top: 32px; display: grid; gap: 12px; }
+  .notes section {
+    border-top: 1px dashed var(--garis);
+    padding-top: 12px;
+  }
+  .notes h2 { font-size: 15px; margin: 0 0 4px; }
+  .notes p { margin: 0; color: var(--kabut); font-size: 14px; line-height: 1.6; max-width: 70ch; }
+  code { font-family: ui-monospace, "IBM Plex Mono", monospace; font-size: 0.92em; color: var(--busa); }
+</style>
+</head>
+<body>
+<main>
+  <p class="kicker">DEZDOWNLOAD · ARSITEKTUR · V0.2.0</p>
+  <h1>Dari tautan ke manifest, tanpa server.</h1>
+  <p class="lede">Situs statis disajikan Cloudflare Pages. Satu Pages Worker
+  menjadi server API-nya: ia bertanya ke Cobalt, membentuk jawaban jadi
+  manifest format, dan tidak menyimpan apa pun.</p>
+
+  <figure>
+    <svg viewBox="0 0 880 560" width="880" height="560" role="img"
+         aria-label="Diagram arsitektur DezDownload: browser ke Pages, worker ke Cobalt, kembali sebagai manifest">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#e9f1ec"/>
+        </marker>
+        <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#e4572e"/>
+        </marker>
+      </defs>
+
+      <!-- Browser -->
+      <g>
+        <rect x="24" y="24" width="240" height="96" rx="12" fill="#0c1f22" stroke="#e9f1ec" stroke-opacity="0.22"/>
+        <text x="44" y="56" fill="#f2c230" font-size="11" class="mono">01 · PENGGUNA</text>
+        <text x="44" y="84" fill="#e9f1ec" font-size="17" font-weight="700">Browser</text>
+        <text x="44" y="106" fill="#93a8a4" font-size="12">Tempel tautan · pilih peti format</text>
+      </g>
+
+      <!-- Pages static -->
+      <g>
+        <rect x="320" y="24" width="260" height="96" rx="12" fill="#0c1f22" stroke="#e9f1ec" stroke-opacity="0.22"/>
+        <text x="340" y="56" fill="#f2c230" font-size="11" class="mono">02 · CLOUDFLARE PAGES</text>
+        <text x="340" y="84" fill="#e9f1ec" font-size="17" font-weight="700">Situs statis (out/)</text>
+        <text x="340" y="106" fill="#93a8a4" font-size="12">Next.js static export · / · /docs/ · og-image</text>
+      </g>
+
+      <!-- Worker -->
+      <g>
+        <rect x="320" y="184" width="260" height="128" rx="12" fill="#0c1f22" stroke="#e4572e" stroke-width="1.5"/>
+        <text x="340" y="216" fill="#f2c230" font-size="11" class="mono">03 · PAGES WORKER</text>
+        <text x="340" y="244" fill="#e9f1ec" font-size="17" font-weight="700">worker/_worker.js</text>
+        <text x="340" y="266" fill="#93a8a4" font-size="12">/api/download · /api/proxy</text>
+        <text x="340" y="286" fill="#93a8a4" font-size="12">cache 10 mnt · gabung duplikat</text>
+      </g>
+
+      <!-- Cobalt -->
+      <g>
+        <rect x="616" y="184" width="240" height="128" rx="12" fill="#0c1f22" stroke="#e9f1ec" stroke-opacity="0.22"/>
+        <text x="636" y="216" fill="#f2c230" font-size="11" class="mono">04 · UPSTREAM</text>
+        <text x="636" y="244" fill="#e9f1ec" font-size="17" font-weight="700">Cobalt v10 API</text>
+        <text x="636" y="266" fill="#93a8a4" font-size="12">POST / × 2 paralel</text>
+        <text x="636" y="286" fill="#93a8a4" font-size="12">video auto · audio</text>
+      </g>
+
+      <!-- Manifest result -->
+      <g>
+        <rect x="320" y="376" width="260" height="96" rx="12" fill="#0c1f22" stroke="#e9f1ec" stroke-opacity="0.22"/>
+        <text x="340" y="408" fill="#f2c230" font-size="11" class="mono">05 · HASIL</text>
+        <text x="340" y="436" fill="#e9f1ec" font-size="17" font-weight="700">Manifest format</text>
+        <text x="340" y="458" fill="#93a8a4" font-size="12">MP4 · WEBM · MP3 — label peti + cap</text>
+      </g>
+
+      <!-- CDN source -->
+      <g>
+        <rect x="616" y="376" width="240" height="96" rx="12" fill="#0c1f22" stroke="#e9f1ec" stroke-opacity="0.22"/>
+        <text x="636" y="408" fill="#f2c230" font-size="11" class="mono">06 · SUMBER MEDIA</text>
+        <text x="636" y="436" fill="#e9f1ec" font-size="17" font-weight="700">CDN platform asal</text>
+        <text x="636" y="458" fill="#93a8a4" font-size="12">Browser unduh langsung</text>
+      </g>
+
+      <!-- Arrows -->
+      <line x1="264" y1="72" x2="312" y2="72" stroke="#e9f1ec" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="266" y="60" fill="#93a8a4" font-size="11" class="mono">GET /</text>
+
+      <line x1="450" y1="120" x2="450" y2="176" stroke="#e9f1ec" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="460" y="152" fill="#93a8a4" font-size="11" class="mono">GET /api/download?url=…</text>
+
+      <line x1="580" y1="232" x2="608" y2="232" stroke="#e4572e" stroke-width="1.5" marker-end="url(#arrow-accent)"/>
+      <text x="560" y="220" fill="#93a8a4" font-size="11" class="mono">POST</text>
+
+      <line x1="608" y1="272" x2="580" y2="272" stroke="#93a8a4" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="560" y="296" fill="#93a8a4" font-size="11" class="mono">tunnel / picker</text>
+
+      <line x1="450" y1="312" x2="450" y2="368" stroke="#e9f1ec" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="460" y="344" fill="#93a8a4" font-size="11" class="mono">JSON Result</text>
+
+      <line x1="580" y1="424" x2="608" y2="424" stroke="#e9f1ec" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <text x="556" y="412" fill="#93a8a4" font-size="11" class="mono">unduh</text>
+
+      <!-- Legend / note -->
+      <text x="24" y="528" fill="#93a8a4" font-size="12">Garis vermilion = panggilan ke upstream (Cobalt). Semua yang lain = di dalam Cloudflare Pages.</text>
+      <text x="24" y="548" fill="#93a8a4" font-size="12">Tidak ada database, tidak ada media yang disimpan, tidak ada server Node yang berjalan.</text>
+    </svg>
+    <figcaption>FIG. 1 — Alur permintaan DezDownload v0.2.0. Detail tiap lapisan: docs/ARCHITECTURE.md.</figcaption>
+  </figure>
+
+  <div class="notes">
+    <section>
+      <h2>Kenapa worker, bukan route handler Next.js?</h2>
+      <p><code>output: 'export'</code> menolak route handler dinamis saat build. Worker adalah satu-satunya cara <code>/api/download</code> tetap hidup di Pages direct-upload — dan ia tanpa dependensi, jadi tidak ada yang bisa usang di sisi server.</p>
+    </section>
+    <section>
+      <h2>Kenapa dua panggilan Cobalt?</h2>
+      <p>Video (<code>downloadMode: auto</code>) dan audio (<code>downloadMode: audio</code>) diminta paralel supaya peti audio tidak menunggu video selesai. Keduanya timeout 30 detik dan hasilnya digabung <code>buildResult()</code> — fungsi pure yang diuji unit test.</p>
+    </section>
+    <section>
+      <h2>Apa yang tidak ada di diagram ini?</h2>
+      <p>Sengaja tidak ada: database, antrean, akun pengguna, dan penyimpanan file. Kalau suatu hari ada, diagram ini wajib diperbarui dulu sebelum kodenya ditulis.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>
