@@ -118,8 +118,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers (on-demand via npx, tidak ada di lock)
-        run: npx --yes @playwright/test@1.49.0 install --with-deps chromium
+      # Playwright BUKAN dependensi repo (tidak ada di package-lock.json):
+      # diinstal di sini sebagai devDependency CI-only — perubahan
+      # package.json/lock hanya hidup di workspace runner, tidak di-commit.
+      # (npx saja TIDAK cukup: binary dari cache npx tidak bisa me-resolve
+      # import "@playwright/test" di playwright.config.ts — terbukti lokal:
+      # "Error: Cannot find module '@playwright/test'".)
+      - name: Install Playwright (CI-only devDependency)
+        run: npm install -D @playwright/test@1.49.0
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
 
       - name: E2E landing + ekstraksi mock (desktop + Pixel 7)
         run: npm run e2e

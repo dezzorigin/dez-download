@@ -28,8 +28,9 @@
   "exclude": [
     "node_modules",
     // E2E Playwright bukan dependensi repo (tidak ada di package-lock.json)
-    // — @playwright/test diinstal on-demand di CI via npx, jadi file-file
-    // ini tidak ikut typecheck; Playwright mentranspile-nya sendiri.
+    // — @playwright/test diinstal on-demand di CI sebagai devDependency
+    // CI-only, jadi file-file ini tidak ikut typecheck; Playwright
+    // mentranspile-nya sendiri.
     "e2e",
     "playwright.config.ts"
   ]
