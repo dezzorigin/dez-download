@@ -335,7 +335,8 @@ npm run serve   # http://127.0.0.1:8500 — sajikan out/ + worker`}
           <h3 className="mt-5 text-sm font-bold tracking-wide uppercase">Endpoint worker</h3>
           <ul className="mt-2 space-y-2 font-mono text-xs text-[var(--kabut)]">
             <li className="rounded-[4px] border border-[var(--garis)] bg-black/30 px-3 py-2">
-              GET /api/download?url=… — ekstrak media (juga menerima POST JSON {"{"}"url": …{"}"})
+              GET /api/download?url=… — ekstrak media (juga menerima POST JSON{" "}
+              <code className="font-mono text-[11px] text-[var(--busa)]">{'{"url": …}'}</code>)
             </li>
             <li className="rounded-[4px] border border-[var(--garis)] bg-black/30 px-3 py-2">
               GET /api/proxy?url=…&amp;filename=… — unduh media sebagai attachment

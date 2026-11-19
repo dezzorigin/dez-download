@@ -36,7 +36,7 @@ Next.js 15 App Router, `output: 'export'`, `trailingSlash: true`.
 | `app/docs/page.tsx` | Halaman dokumentasi (konten jujur — tanpa paywall, tanpa klaim palsu) |
 | `app/globals.css` | Token dermaga (CSS vars) + utilitas `.dock-panel`, `.manifest-perforation`, `.animate-conveyor` |
 | `lib/utils.ts` | `cn()` + `forceDownload()` (buka tautan media di tab baru) |
-| `hooks/use-mobile.ts` | Hook media query (dipertahankan dari v0.1) |
+| `hooks/` | Dihapus di v0.2.0 (`use-mobile.ts` tak terpakai + melanggar `react-hooks/set-state-in-effect`) |
 
 `next/font/google` mengunduh font saat build (butuh network di CI) dan
 menyertakannya di `out/` — halaman live tidak bergantung ke Google Fonts

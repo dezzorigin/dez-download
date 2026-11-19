@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - `lib/downr.ts` (diganti worker), `app/api/download/route.ts`, `app/api/proxy/route.ts`
+- `hooks/use-mobile.ts` (tak terpakai; melanggar `react-hooks/set-state-in-effect`)
 - `metadata.json` (AI Studio, tidak relevan)
 - `.eslintrc.json` (legacy, sudah ada `eslint.config.mjs`)
 

@@ -126,24 +126,23 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState("");
   const [toastType, setToastType] = useState<"success" | "info" | "error" | "warning">("success");
 
+  // Timer penghilang toast + scroll ke hasil — tanpa setState sinkron
+  // di badan effect (react-hooks/set-state-in-effect); toast-nya sendiri
+  // di-set di handleDownload (event handler).
   useEffect(() => {
-    if (result) {
-      setToastType("success");
-      setToastMessage("Media berhasil diekstrak.");
-      setShowToast(true);
-      const toastTimer = setTimeout(() => {
-        setShowToast(false);
-      }, 4000);
+    if (!result) return;
+    const toastTimer = setTimeout(() => {
+      setShowToast(false);
+    }, 4000);
 
-      const scrollTimer = setTimeout(() => {
-        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
+    const scrollTimer = setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
 
-      return () => {
-        clearTimeout(toastTimer);
-        clearTimeout(scrollTimer);
-      };
-    }
+    return () => {
+      clearTimeout(toastTimer);
+      clearTimeout(scrollTimer);
+    };
   }, [result]);
 
   useEffect(() => {
@@ -163,14 +162,18 @@ export default function Home() {
     };
   }, []);
 
+  // Buka drawer platform bila URL membawa ?platforms=true. setState
+  // di-defer ke macrotask supaya tidak sinkron di badan effect
+  // (react-hooks/set-state-in-effect).
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    const timer = setTimeout(() => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("platforms") === "true") {
         setIsPlatformsDrawerOpen(true);
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-    }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -288,6 +291,9 @@ export default function Home() {
         }
       } else {
         setResult(data.Result);
+        setToastType("success");
+        setToastMessage("Media berhasil diekstrak.");
+        setShowToast(true);
       }
     } catch (err: any) {
       setError("Gagal mengekstrak media. Periksa URL lalu coba lagi.");
